@@ -51,13 +51,13 @@ pindah akun, detail pesanan & riwayat pelanggan, sembunyikan/hapus ulasan, penga
 
 Salin `.env.example` menjadi `.env` lalu isi:
 
-| Kunci | Keterangan |
-|---|---|
-| `PORT` | Port server (default `4173`) |
-| `ADMIN_EMAIL` | Email untuk masuk dashboard `/admin` (default `admin@cloraamine.test`) |
-| `ADMIN_PASSWORD` | Kata sandi dashboard `/admin` — **wajib diganti** |
-| `WA_PENJUAL` | Nomor WhatsApp penjual untuk tautan "Hubungi Penjual" |
-| `QRIS_PAYLOAD` | Payload QRIS statis dari aplikasi pembayaran Anda |
+| Kunci            | Keterangan                                                             |
+| ---------------- | ---------------------------------------------------------------------- |
+| `PORT`           | Port server (default `4173`)                                           |
+| `ADMIN_EMAIL`    | Email untuk masuk dashboard `/admin` (default `admin@cloraamine.test`) |
+| `ADMIN_PASSWORD` | Kata sandi dashboard `/admin` — **wajib diganti**                      |
+| `WA_PENJUAL`     | Nomor WhatsApp penjual untuk tautan "Hubungi Penjual"                  |
+| `QRIS_PAYLOAD`   | Payload QRIS statis dari aplikasi pembayaran Anda                      |
 
 Data lain (rekening transfer, ongkos kirim ekspedisi, media sosial, tarif custom, data produk)
 diubah melalui file konfigurasi:
@@ -119,6 +119,7 @@ cloraamine/
 ## Alur Utama
 
 ### Pembeli
+
 1. **Beranda** → nama toko, slogan, kategori, produk unggulan.
 2. **Katalog** → 5 kategori (Photocard, Album, Merch Lainnya, Stiker Custom, Pin Button Custom)
    dengan pencarian serta filter kategori, grup, member, harga, dan stok.
@@ -146,6 +147,7 @@ cloraamine/
    Tombol **Pindah Akun** mengeluarkan sesi lalu kembali ke pilihan Admin/Pelanggan.
 
 ### Pesanan Custom (stiker & pin button)
+
 - Unggah desain (PNG/JPG/PDF), pilih ukuran, bahan (vinyl, holo, glossy, matte), bentuk
   potongan, dan jumlah (ada jumlah minimal).
 - Harga dihitung otomatis dari ukuran, bahan, dan jumlah (harga bertingkat) dari
@@ -157,6 +159,7 @@ cloraamine/
   produksi**. Kotak pernyataan bahwa desain bukan karya pihak lain tanpa izin wajib dicentang.
 
 ### Admin (`/admin`)
+
 - Halaman `/admin` **hanya dapat dibuka dengan sesi admin**; tanpa sesi (termasuk saat dibuka
   pelanggan yang sedang masuk) pengunjung diarahkan ke pilihan akun di `/akun`.
 - Dilindungi **email + kata sandi** dari `.env` (`ADMIN_EMAIL`, `ADMIN_PASSWORD`),
@@ -176,6 +179,7 @@ cloraamine/
 - Generator QR Code PNG menuju URL toko.
 
 ### Pelanggan (`/akun`)
+
 - **Daftar/masuk dengan email & kata sandi** (minimal 8 karakter, mengandung huruf dan angka).
   Batas 5 percobaan per 15 menit; sesi berlaku 24 jam.
 - **Pindah akun**: beberapa akun bisa tersimpan di satu perangkat dan saling ditukar tanpa
@@ -195,6 +199,7 @@ cloraamine/
   muncul sebagai notifikasi in-app (opsional: pemberitahuan browser bila diizinkan).
 
 ### Notifikasi
+
 - Setiap perubahan penting tercatat di tabel `notifikasi` dan dibaca lewat `/api/notifikasi`.
 - Penerima: admin (pesanan baru, bukti bayar, custom, ulasan) atau email pelanggan pemilik
   pesanan (status berubah, tinjauan desain, komentar admin).
@@ -202,6 +207,7 @@ cloraamine/
   diperbarui otomatis setiap 30 detik.
 
 ## Keamanan
+
 - Validasi input di seluruh rute API.
 - Kata sandi disimpan sebagai hash scrypt (dengan garam acak), bukan teks jelas.
 - Unggahan dibatasi tipe dan ukuran berkas; nama berkas dibuat acak.
@@ -209,4 +215,15 @@ cloraamine/
   (token) yang boleh membukanya — **kecuali foto produk (`uploads/foto-*`)** yang memang
   ditampilkan di katalog untuk semua orang.
 - Percobaan masuk admin dan pelanggan dibatasi (5 kali per 15 menit per IP, ruang terpisah).
-"# cloraamine--online-shop" 
+  "# cloraamine--online-shop"
+
+"""Tampilan Antarmuka (UI)
+
+![beranda](screenshot/beranda.png)
+![dasboard pelanggan](screenshot/dasboard%20pelanggan.png)
+![dashboard admin](screenshot/dashboard%20admin.png)
+![kataloh](screenshot/katalog.png)
+![keranjang](screenshot/keranjang.png)
+![lacak pesanan](screenshot/lacak%20pesanan.png)
+![ulasan](screenshot/ulasan.png)
+![custom pesanan](screenshot/custom%20pesanan.png)
