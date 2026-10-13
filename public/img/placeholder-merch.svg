@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Placeholder merchandise contoh">
+  <rect width="400" height="400" fill="#fbe4ee"/>
+  <path d="M110 130 h180 l24 200 h-228 z" fill="#ffffff" stroke="#4a2e1e" stroke-width="4"/>
+  <path d="M150 130 c0 -45 100 -45 100 0" fill="none" stroke="#d94f8a" stroke-width="5"/>
+  <text x="200" y="265" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#4a2e1e">MERCH</text>
+  <text x="200" y="300" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#b83a70">CONTOH</text>
+</svg>

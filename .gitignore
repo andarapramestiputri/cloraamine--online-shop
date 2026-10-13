@@ -1,0 +1,9 @@
+node_modules/
+.env
+data/*.db
+data/*.db-wal
+data/*.db-shm
+uploads/*
+!uploads/.gitkeep
+server-test.log
+npm-debug.log*

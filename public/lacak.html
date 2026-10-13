@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Lacak Pesanan — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak" class="aktif">Lacak</a>
+        <a href="/ulasan">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <h1>Pelacakan Pesanan</h1>
+
+    <form class="panel form" id="form-lacak">
+      <div class="baris">
+        <label for="kode">Kode pesanan</label>
+        <input type="text" id="kode" placeholder="CL250101-1A2B" required />
+      </div>
+      <div class="baris">
+        <label for="wa">Nomor WhatsApp</label>
+        <input type="tel" id="wa" placeholder="081234567890" required />
+        <span class="bantuan">Nomor yang digunakan saat memesan.</span>
+      </div>
+      <div class="baris">
+        <label for="jenis">Jenis pesanan</label>
+        <select id="jenis">
+          <option value="reguler">Pesanan reguler / pre-order</option>
+          <option value="custom">Pesanan custom (stiker / pin button)</option>
+        </select>
+      </div>
+      <button class="tombol tombol-lebar" type="submit">Lacak Pesanan</button>
+    </form>
+
+    <div id="pesan" class="pesan pesan-tersembunyi"></div>
+
+    <div class="panel" id="hasil" style="display:none">
+      <div class="row row-antara">
+        <h2 class="util-mb-0">Kode <span id="r-kode"></span></h2>
+        <span class="lencana lencana-status" id="r-status"></span>
+      </div>
+      <p class="kecil abu" id="r-info"></p>
+      <div class="tabel-bungkus"><table class="tabel"><thead><tr><th>Produk</th><th class="kanan">Jumlah</th><th class="kanan">Harga</th></tr></thead><tbody id="r-items"></tbody></table></div>
+      <p class="kanan"><strong id="r-total"></strong></p>
+
+      <div id="blok-acc" style="display:none">
+        <p class="pesan pesan-info">Desain Anda telah disetujui admin. Berikan persetujuan agar pesanan masuk tahap produksi.</p>
+        <button class="tombol" id="btnAcc">Setujui untuk Produksi</button>
+      </div>
+
+      <div id="blok-komentar" style="display:none">
+        <h3>Komentar Peninjauan Desain</h3>
+        <div id="daftar-komentar"></div>
+        <div class="form" style="margin-top:8px">
+          <div class="baris">
+            <label for="komentar">Tanggapan Anda</label>
+            <textarea id="komentar" rows="2" maxlength="500"></textarea>
+          </div>
+          <button class="tombol tombol-kedua" id="btnKirimKomentar">Kirim Komentar</button>
+        </div>
+      </div>
+
+      <div id="blok-revisi" style="display:none">
+        <h3>Unggah Desain Revisi</h3>
+        <div class="form">
+          <div class="baris">
+            <label for="desainRevisi">Berkas desain baru (PNG/JPG/PDF, maksimal 10 MB)</label>
+            <input type="file" id="desainRevisi" accept="image/png,image/jpeg,application/pdf" />
+          </div>
+          <button class="tombol" id="btnRevisi">Kirim Desain Revisi</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine. </p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    const el = (id) => document.getElementById(id);
+    const pesan = el('pesan');
+    let sesi = null; // { jenis, kode, wa, token }
+
+    function tampilkanPesan(teks, jenis) {
+      pesan.className = 'pesan pesan-' + jenis;
+      pesan.textContent = teks;
+      pesan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    async function lacak() {
+      const jenis = el('jenis').value;
+      const kode = el('kode').value.trim();
+      const wa = el('wa').value.trim();
+      try {
+        if (jenis === 'custom') {
+          const d = await Clora.api('/custom/' + encodeURIComponent(kode) + '?wa=' + encodeURIComponent(wa));
+          sesi = { jenis, kode, wa: d.wa, token: d.token };
+          renderCustom(d);
+        } else {
+          const d = await Clora.api('/pesanan/lacak?kode=' + encodeURIComponent(kode) + '&wa=' + encodeURIComponent(wa));
+          sesi = { jenis, kode, wa, token: d.token };
+          renderReguler(d);
+        }
+        el('hasil').style.display = '';
+        el('hasil').scrollIntoView({ behavior: 'smooth' });
+      } catch (e) {
+        el('hasil').style.display = 'none';
+        tampilkanPesan(e.message, 'galat');
+      }
+    }
+
+    function renderReguler(d) {
+      el('r-kode').textContent = d.kode;
+      el('r-status').textContent = Clora.labelStatus(d.status);
+      el('r-info').textContent = `${d.tipe === 'preorder' ? 'Pre-order' : 'Pesanan reguler'} · ${d.nama} · dibuat ${d.createdAt} · ekspedisi ${d.ekspedisi} · pembayaran ${d.metodePembayaran}${d.adaBukti ? ' · bukti terunggah' : ''}`;
+      el('r-items').innerHTML = d.items.map((i) =>
+        `<tr><td>${Clora.esc(i.nama)}${i.varian ? ' <span class="kecil abu">(' + Clora.esc(i.varian) + ')</span>' : ''}</td>
+         <td class="kanan">${i.jumlah}</td><td class="kanan">${Clora.rupiah(i.harga * i.jumlah)}</td></tr>`
+      ).join('');
+      el('r-total').textContent = 'Total: ' + Clora.rupiah(d.total);
+      el('blok-acc').style.display = 'none';
+      el('blok-komentar').style.display = 'none';
+      el('blok-revisi').style.display = 'none';
+    }
+
+    function renderCustom(d) {
+      el('r-kode').textContent = d.kode;
+      el('r-status').textContent = Clora.labelStatus(d.status);
+      el('r-info').textContent = `Pesanan custom ${d.tipeCustom} · ${d.nama} · dibuat ${d.createdAt} · jumlah ${d.jumlah}`;
+      el('r-items').innerHTML =
+        `<tr><td>${Clora.esc(d.tipeCustom)} — ukuran ${Clora.esc(d.ukuranId)}, bahan ${Clora.esc(d.bahanId)}, bentuk ${Clora.esc(d.bentukId)}</td>
+         <td class="kanan">${d.jumlah}</td><td class="kanan">${Clora.rupiah(d.total)}</td></tr>`;
+      el('r-total').textContent = 'Total: ' + Clora.rupiah(d.total);
+
+      el('blok-acc').style.display = d.status === 'disetujui' && !d.accPembeli ? '' : 'none';
+      el('blok-komentar').style.display = d.komentar.length || ['menunggu_desain', 'revisi'].includes(d.status) ? '' : 'none';
+      el('blok-revisi').style.display = d.status === 'revisi' ? '' : 'none';
+      el('daftar-komentar').innerHTML = d.komentar.length
+        ? d.komentar.map((k) =>
+            `<div class="panel" style="margin:8px 0"><strong>${k.pengirim === 'admin' ? 'Admin' : 'Anda'}</strong>
+             <span class="kecil abu">${Clora.esc(k.waktu)}</span><p class="kecil util-mb-0">${Clora.esc(k.isi)}</p></div>`
+          ).join('')
+        : '<p class="kecil abu">Belum ada komentar.</p>';
+    }
+
+    el('form-lacak').addEventListener('submit', (ev) => { ev.preventDefault(); lacak(); });
+
+    // Praisi dari tautan (mis. dashboard /akun)
+    const qs = new URLSearchParams(location.search);
+    if (qs.get('kode')) el('kode').value = qs.get('kode');
+    if (qs.get('wa')) el('wa').value = qs.get('wa');
+    if (qs.get('jenis')) el('jenis').value = qs.get('jenis');
+    if (qs.get('kode') && qs.get('wa')) lacak();
+
+    el('btnAcc').addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/custom/' + encodeURIComponent(sesi.kode) + '/persetujuan', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-token': sesi.token },
+          body: JSON.stringify({ wa: sesi.wa }),
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.pesan);
+        tampilkanPesan(d.pesan, 'sukses');
+        await lacak();
+      } catch (e) { tampilkanPesan(e.message, 'galat'); }
+    });
+
+    el('btnKirimKomentar').addEventListener('click', async () => {
+      const isi = el('komentar').value.trim();
+      if (!isi) { tampilkanPesan('Tulis komentar terlebih dahulu.', 'galat'); return; }
+      try {
+        const res = await fetch('/api/custom/' + encodeURIComponent(sesi.kode) + '/komentar', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-token': sesi.token },
+          body: JSON.stringify({ isi, wa: sesi.wa }),
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.pesan);
+        el('komentar').value = '';
+        tampilkanPesan(d.pesan, 'sukses');
+        await lacak();
+      } catch (e) { tampilkanPesan(e.message, 'galat'); }
+    });
+
+    el('btnRevisi').addEventListener('click', async () => {
+      const berkas = el('desainRevisi').files[0];
+      if (!berkas) { tampilkanPesan('Pilih berkas desain revisi.', 'galat'); return; }
+      const fd = new FormData();
+      fd.append('desain', berkas);
+      fd.append('wa', sesi.wa);
+      try {
+        const res = await fetch('/api/custom/' + encodeURIComponent(sesi.kode) + '/revisi', {
+          method: 'POST',
+          headers: { 'x-token': sesi.token },
+          body: fd,
+        });
+        const d = await res.json();
+        if (!res.ok) throw new Error(d.pesan);
+        tampilkanPesan(d.pesan, 'sukses');
+        await lacak();
+      } catch (e) { tampilkanPesan(e.message, 'galat'); }
+    });
+  </script>
+</body>
+</html>

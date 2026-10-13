@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Placeholder album contoh">
+  <rect width="400" height="400" fill="#f6e9da"/>
+  <rect x="40" y="40" width="320" height="320" rx="14" fill="#ffffff" stroke="#4a2e1e" stroke-width="4"/>
+  <circle cx="200" cy="185" r="92" fill="#fdf6ee" stroke="#d94f8a" stroke-width="5"/>
+  <circle cx="200" cy="185" r="26" fill="#fbe4ee" stroke="#d94f8a" stroke-width="4"/>
+  <text x="200" y="320" text-anchor="middle" font-family="system-ui, sans-serif" font-size="28" font-weight="700" fill="#4a2e1e">ALBUM</text>
+  <text x="200" y="352" text-anchor="middle" font-family="system-ui, sans-serif" font-size="20" fill="#b83a70">CONTOH</text>
+</svg>

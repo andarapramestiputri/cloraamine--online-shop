@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#d94f8a" />
+    <title>Pesanan Custom — Cloraamine</title>
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="stylesheet" href="/css/style.css" />
+    <style>
+      /* Pratinjau desain sederhana sesuai bentuk & ukuran pilihan */
+      #pratinjau-wadah {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 240px;
+        background: var(--krem-tua);
+        border: 1px dashed var(--border);
+        border-radius: var(--radius);
+        padding: 14px;
+      }
+      #pratinjau-wadah .bentuk {
+        background: var(--putih);
+        border: 3px solid var(--pink);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        position: relative;
+        transition: all 0.25s ease;
+        max-width: 100%;
+      }
+      #pratinjau-wadah .bentuk img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+      #pratinjau-wadah .bentuk.bulat {
+        border-radius: 50%;
+      }
+      #pratinjau-wadah .bentuk.persegi {
+        border-radius: 6px;
+      }
+      #pratinjau-wadah .bentuk.diecut {
+        border-radius: 18px;
+        clip-path: polygon(8% 0, 100% 0, 92% 100%, 0 100%);
+      }
+      #pratinjau-wadah .teks-kosong {
+        color: var(--cokelat-muda);
+        font-size: 0.85rem;
+        text-align: center;
+        padding: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="header">
+      <div class="header-dalam">
+        <a class="logo" href="/">Cloraamine</a>
+        <nav class="navigasi">
+          <a href="/">Beranda</a>
+          <a href="/katalog">Katalog</a>
+          <a href="/custom" class="aktif">Custom</a>
+          <a href="/lacak">Lacak</a>
+          <a href="/ulasan">Ulasan</a>
+          <a href="/akun">Akun</a>
+          <a href="/keranjang" class="keranjang-tautan"
+            >Keranjang<span class="jumlah-keranjang">0</span></a
+          >
+        </nav>
+      </div>
+    </header>
+
+    <main class="kontainer">
+      <h1>Pesanan Custom</h1>
+      <p class="abu">
+        Pesan stiker custom dan pin button custom sesuai ukuran, bahan, bentuk
+        potongan, dan jumlah yang Anda butuhkan.
+      </p>
+
+      <div id="pesan" class="pesan pesan-tersembunyi"></div>
+
+      <form class="panel form" id="form-custom" enctype="multipart/form-data">
+        <div class="row">
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="tipeCustom">Jenis produk</label>
+            <select id="tipeCustom" required></select>
+          </div>
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="ukuranId">Ukuran</label>
+            <select id="ukuranId" required></select>
+          </div>
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="bahanId">Bahan</label>
+            <select id="bahanId" required></select>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="bentukId">Bentuk potongan</label>
+            <select id="bentukId" required></select>
+          </div>
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="jumlah">Jumlah</label>
+            <input
+              type="number"
+              id="jumlah"
+              required
+              min="1"
+              step="1"
+              inputmode="numeric"
+              value="50"
+            />
+            <span class="bantuan" id="bantuanJumlah"
+              >Jumlah minimal akan dimuat…</span
+            >
+          </div>
+          <div class="baris" style="flex: 1; min-width: 160px">
+            <label for="metodePembayaran">Metode pembayaran</label>
+            <select id="metodePembayaran">
+              <option value="">Belum ditentukan</option>
+              <option value="transfer">Transfer manual</option>
+              <option value="qris">QRIS statis</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="baris">
+          <label for="desain"
+            >Unggah desain (PNG / JPG / PDF, maksimal
+            <span id="batasUkuran">10</span> MB)</label
+          >
+          <input
+            type="file"
+            id="desain"
+            accept="image/png,image/jpeg,application/pdf"
+            required
+          />
+          <span class="bantuan"
+            >Desain akan ditinjau admin sebelum produksi.</span
+          >
+        </div>
+
+        <div class="baris">
+          <label for="nama">Nama lengkap</label>
+          <input type="text" id="nama" required minlength="3" maxlength="80" />
+        </div>
+        <div class="baris">
+          <label for="wa">Nomor WhatsApp</label>
+          <input type="tel" id="wa" required placeholder="081234567890" />
+        </div>
+        <div class="baris">
+          <label for="catatan">Catatan (opsional)</label>
+          <textarea id="catatan" rows="2" maxlength="300"></textarea>
+        </div>
+
+        <section>
+          <h3>Pratinjau Desain</h3>
+          <div id="pratinjau-wadah">
+            <div
+              class="bentuk persegi"
+              id="pratinjau"
+              style="width: 150px; height: 150px"
+            >
+              <span class="teks-kosong" id="pratinjau-teks"
+                >Pratinjau akan tampil di sini</span
+              >
+            </div>
+          </div>
+          <p class="kecil abu" id="pratinjau-keterangan">
+            Ukuran 5 cm × 5 cm · bentuk persegi · skala ilustratif.
+          </p>
+        </section>
+
+        <section class="panel" style="background: var(--krem)">
+          <h3 class="util-mb-0">Perhitungan Harga</h3>
+          <p class="kecil abu" id="catatan-tarif">
+            angka akan dimuat dari file konfigurasi.
+          </p>
+          <div class="row row-antara">
+            <span>Harga satuan</span><strong id="hargaSatuan">—</strong>
+          </div>
+          <div class="row row-antara">
+            <span>Tingkat jumlah</span><span id="tingkat">—</span>
+          </div>
+          <div class="row row-antara">
+            <span><strong>Total harga</strong></span
+            ><strong
+              id="totalHarga"
+              style="font-size: 1.2rem; color: var(--pink-tua)"
+              >—</strong
+            >
+          </div>
+        </section>
+
+        <label class="kotak-persetujuan">
+          <input type="checkbox" id="persetujuanCipta" required />
+          <span
+            >Saya menyatakan bahwa desain yang diunggah merupakan karya saya
+            sendiri atau telah memperoleh izin dari pemiliknya. Saya memahami
+            bahwa Cloraamine berhak menolak desain yang melanggar hak cipta
+            pihak lain.</span
+          >
+        </label>
+
+        <button class="tombol tombol-lebar" type="submit" id="btnPesan">
+          Kirim Pesanan Custom
+        </button>
+      </form>
+
+      <div class="panel" id="hasil" style="display: none">
+        <h2>Pesanan Custom Berhasil Dikirim</h2>
+        <p>Kode pesanan custom: <strong id="kode-custom"></strong></p>
+        <p class="kecil abu">
+          Lacak status peninjauan desain melalui halaman
+          <a href="/lacak">Lacak</a> (jenis pesanan: pesanan custom), atau lihat
+          seluruh pesanan Anda di <a href="/akun">Dashboard Pelanggan</a>.
+        </p>
+        <a class="tombol tombol-kedua" href="/lacak">Buka Halaman Lacak</a>
+        <a class="tombol tombol-kedua" id="bukaAkun" href="/akun"
+          >Buka Dashboard Pelanggan</a
+        >
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="kontainer">
+        <h3>Cloraamine</h3>
+        <p class="kecil">© <span id="tahun"></span> Cloraamine.</p>
+      </div>
+    </footer>
+
+    <script src="/js/util.js"></script>
+    <script>
+      document.getElementById("tahun").textContent = new Date().getFullYear();
+      const el = (id) => document.getElementById(id);
+      const pesan = el("pesan");
+      let konfig = null;
+
+      function tampilkanPesan(teks, jenis) {
+        pesan.className = "pesan pesan-" + jenis;
+        pesan.textContent = teks;
+        pesan.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+
+      (async () => {
+        try {
+          konfig = await Clora.api("/custom/konfigurasi");
+          el("tipeCustom").innerHTML = konfig.jenis
+            .map((j) => `<option value="${j.id}">${Clora.esc(j.nama)}</option>`)
+            .join("");
+          el("ukuranId").innerHTML = konfig.ukuran
+            .map((u) => `<option value="${u.id}">${Clora.esc(u.nama)}</option>`)
+            .join("");
+          el("bahanId").innerHTML = konfig.bahan
+            .map((b) => `<option value="${b.id}">${Clora.esc(b.nama)}</option>`)
+            .join("");
+          el("bentukId").innerHTML = konfig.bentuk
+            .map((b) => `<option value="${b.id}">${Clora.esc(b.nama)}</option>`)
+            .join("");
+          el("batasUkuran").textContent = konfig.batasUnggahan.maksMB;
+          el("catatan-tarif").textContent = konfig.catatan || "Tarif CONTOH.";
+          el("jumlah").value = konfig.jumlahMinimal[el("tipeCustom").value];
+          perbaruiBantuanJumlah();
+          perbaruiPratinjau();
+          hitungHarga();
+        } catch (e) {
+          tampilkanPesan(
+            "Gagal memuat konfigurasi tarif: " + e.message,
+            "galat",
+          );
+        }
+      })();
+
+      function perbaruiBantuanJumlah() {
+        if (!konfig) return;
+        const tipe = el("tipeCustom").value;
+        const min = konfig.jumlahMinimal[tipe];
+        el("bantuanJumlah").textContent =
+          `Jumlah minimal ${min} untuk ${tipe === "stiker" ? "stiker" : "pin button"}.`;
+        if (Number(el("jumlah").value) < min) el("jumlah").value = min;
+      }
+
+      function perbaruiPratinjau() {
+        if (!konfig) return;
+        const ukuran = konfig.ukuran.find((u) => u.id === el("ukuranId").value);
+        const bentuk = el("bentukId").value;
+        const pratinjau = el("pratinjau");
+        // Skala ilustratif: 5 cm = 150 px
+        const cm = Number((ukuran.nama.match(/^(\d+)/) || [0, 5])[1]);
+        const px = Math.round(cm * 30);
+        pratinjau.style.width = px + "px";
+        pratinjau.style.height = px + "px";
+        pratinjau.className =
+          "bentuk " +
+          (bentuk === "bulat"
+            ? "bulat"
+            : bentuk === "diecut"
+              ? "diecut"
+              : "persegi");
+        el("pratinjau-keterangan").textContent =
+          `Ukuran ${ukuran.nama} · bentuk ${konfig.bentuk.find((b) => b.id === bentuk).nama.toLowerCase()} · skala ilustratif.`;
+
+        const berkas = el("desain").files[0];
+        const lama = pratinjau.querySelector("img");
+        if (berkas && berkas.type.startsWith("image/")) {
+          if (
+            !pratinjau.dataset.kode ||
+            pratinjau.dataset.kode !== String(berkas.lastModified + berkas.size)
+          ) {
+            if (lama) lama.remove();
+            const img = document.createElement("img");
+            img.alt = "Pratinjau desain";
+            img.src = URL.createObjectURL(berkas);
+            pratinjau.appendChild(img);
+            pratinjau.dataset.kode = String(berkas.lastModified + berkas.size);
+            const teks = pratinjau.querySelector("#pratinjau-teks");
+            if (teks) teks.remove();
+          }
+        } else if (berkas && berkas.type === "application/pdf") {
+          if (lama) lama.remove();
+          if (!pratinjau.querySelector("#pratinjau-teks")) {
+            const s = document.createElement("span");
+            s.id = "pratinjau-teks";
+            s.className = "teks-kosong";
+            s.textContent = "Berkas PDF — pratinjau tidak tersedia";
+            pratinjau.appendChild(s);
+          }
+        }
+      }
+
+      let jedaHarga;
+      async function hitungHarga() {
+        if (!konfig) return;
+        clearTimeout(jedaHarga);
+        jedaHarga = setTimeout(async () => {
+          try {
+            const d = await Clora.api("/custom/simulasi", {
+              method: "POST",
+              data: {
+                tipeCustom: el("tipeCustom").value,
+                ukuranId: el("ukuranId").value,
+                bahanId: el("bahanId").value,
+                bentukId: el("bentukId").value,
+                jumlah: Number(el("jumlah").value) || 0,
+              },
+            });
+            el("hargaSatuan").textContent =
+              Clora.rupiah(d.hargaSatuan) + " / item";
+            el("tingkat").textContent = d.tingkat;
+            el("totalHarga").textContent = Clora.rupiah(d.total);
+          } catch (e) {
+            el("hargaSatuan").textContent = "—";
+            el("tingkat").textContent = "—";
+            el("totalHarga").textContent = "—";
+            el("bantuanJumlah").textContent = e.message;
+          }
+        }, 250);
+      }
+
+      ["tipeCustom", "ukuranId", "bentukId"].forEach((id) =>
+        el(id).addEventListener("change", () => {
+          if (id === "tipeCustom") {
+            el("jumlah").value = konfig.jumlahMinimal[el("tipeCustom").value];
+            perbaruiBantuanJumlah();
+          }
+          perbaruiPratinjau();
+          hitungHarga();
+        }),
+      );
+      ["bahanId", "jumlah"].forEach((id) =>
+        el(id).addEventListener("input", hitungHarga),
+      );
+      el("desain").addEventListener("change", () => {
+        perbaruiPratinjau();
+      });
+
+      el("form-custom").addEventListener("submit", async (ev) => {
+        ev.preventDefault();
+        const fd = new FormData();
+        fd.append("tipeCustom", el("tipeCustom").value);
+        fd.append("ukuranId", el("ukuranId").value);
+        fd.append("bahanId", el("bahanId").value);
+        fd.append("bentukId", el("bentukId").value);
+        fd.append("jumlah", el("jumlah").value);
+        fd.append("nama", el("nama").value);
+        fd.append("wa", el("wa").value);
+        fd.append("catatan", el("catatan").value);
+        fd.append("metodePembayaran", el("metodePembayaran").value);
+        fd.append("persetujuanCipta", el("persetujuanCipta").checked);
+        const berkas = el("desain").files[0];
+        if (berkas) fd.append("desain", berkas);
+
+        const btn = el("btnPesan");
+        btn.disabled = true;
+        try {
+          const res = await fetch("/api/custom", { method: "POST", body: fd });
+          const d = await res.json();
+          if (!res.ok) throw new Error(d.pesan || "Pengiriman gagal.");
+          el("kode-custom").textContent = d.kode;
+          el("bukaAkun").href =
+            "/akun?kode=" +
+            encodeURIComponent(d.kode) +
+            "&wa=" +
+            encodeURIComponent(el("wa").value);
+          el("form-custom").style.display = "none";
+          el("hasil").style.display = "";
+          el("hasil").scrollIntoView({ behavior: "smooth" });
+        } catch (e) {
+          tampilkanPesan(e.message, "galat");
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

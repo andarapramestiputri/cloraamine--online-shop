@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <meta name="robots" content="noindex" />
+  <title>Admin — Cloraamine</title>
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <span id="judul-sesi" class="kecil abu">Panel Admin</span>
+        <span id="lonceng-wadah"></span>
+        <button class="tombol tombol-kedua tombol-kecil" id="btnAkun" style="display:none">Akun</button>
+        <button class="tombol tombol-kedua tombol-kecil" id="btnPindah" style="display:none">Pindah Akun</button>
+        <button class="tombol tombol-kedua tombol-kecil" id="btnKeluar" style="display:none">Keluar</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <!-- MASUK -->
+    <section id="layar-masuk" class="panel" style="max-width:420px;margin:40px auto">
+      <h1>Masuk Admin</h1>
+      <p class="kecil abu">Masukkan email dan kata sandi admin anda</p>
+      <div class="form">
+        <div class="baris">
+          <label for="email">Email</label>
+          <input type="email" id="email" autocomplete="email" placeholder="admin@cloraamine.test" />
+        </div>
+        <div class="baris">
+          <label for="sandi">Kata sandi</label>
+          <input type="password" id="sandi" autocomplete="current-password" />
+        </div>
+        <div id="pesan-masuk" class="pesan pesan-tersembunyi"></div>
+        <button class="tombol tombol-lebar" id="btnMasuk">Masuk</button>
+      </div>
+    </section>
+
+    <!-- DASBOR -->
+    <section id="layar-dasbor" style="display:none">
+      <h1>Dashboard Admin</h1>
+
+      <div class="tab-bar" id="tab-bar">
+        <button data-tab="ringkasan" class="aktif">Ringkasan</button>
+        <button data-tab="produk">Produk</button>
+        <button data-tab="pesanan">Pesanan</button>
+        <button data-tab="custom">Pesanan Custom</button>
+        <button data-tab="ulasan">Ulasan</button>
+        <button data-tab="pelanggan">Pelanggan</button>
+        <button data-tab="qr">QR Code</button>
+        <button data-tab="akun">Akun Admin</button>
+      </div>
+
+      <div id="pesan-umum" class="pesan pesan-tersembunyi"></div>
+
+      <!-- RINGKASAN -->
+      <div class="panel-tab aktif" id="tab-ringkasan">
+        <div class="panel">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Rekap Penjualan</h2>
+            <a class="tombol tombol-kedua tombol-kecil" href="/api/admin/pesanan.csv" id="btnCsv">Ekspor CSV</a>
+          </div>
+          <div class="stat-kisi" style="margin-top:10px">
+            <div class="stat"><div class="angka" id="st-total">—</div><div class="label">Total pesanan</div></div>
+            <div class="stat"><div class="angka" id="st-pendapatan">—</div><div class="label">Pendapatan</div></div>
+            <div class="stat"><div class="angka" id="st-reguler">—</div><div class="label">Pesanan reguler/pre-order</div></div>
+            <div class="stat"><div class="angka" id="st-custom">—</div><div class="label">Pesanan custom</div></div>
+          </div>
+          <h3 style="margin-top:16px">Penjualan per Produk (terlaris di atas)</h3>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead><tr><th>Produk</th><th class="kanan">Terjual</th><th class="kanan">Pendapatan</th></tr></thead>
+              <tbody id="st-produk"><tr><td colspan="3">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUK -->
+      <div class="panel-tab" id="tab-produk">
+        <div class="panel">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Kelola Produk</h2>
+            <button class="tombol tombol-kecil" id="btnTambahProduk">+ Tambah Produk</button>
+          </div>
+          <div id="pesan-produk" class="pesan pesan-tersembunyi"></div>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead><tr><th>Produk</th><th>Kategori</th><th class="kanan">Harga</th><th class="kanan">Stok</th><th>Status</th><th></th></tr></thead>
+              <tbody id="tbody-produk"><tr><td colspan="6">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-kategori">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Kelola Kategori</h2>
+            <button class="tombol tombol-kecil" id="btnTambahKategori">+ Tambah Kategori</button>
+          </div>
+          <div id="pesan-kategori" class="pesan pesan-tersembunyi"></div>
+          <form class="form" id="form-kategori" style="display:none">
+            <input type="hidden" id="k-id" />
+            <div class="row">
+              <div class="baris" style="flex:2;min-width:160px"><label for="k-nama">Nama kategori</label><input id="k-nama" required minlength="2" maxlength="60" /></div>
+              <div class="baris" style="flex:1;min-width:90px"><label for="k-urutan">Urutan</label><input type="number" id="k-urutan" min="0" max="999" value="0" required /></div>
+            </div>
+            <div class="row">
+              <button class="tombol" type="submit">Simpan Kategori</button>
+              <button class="tombol tombol-kedua" type="button" id="btnBatalKategori">Batal</button>
+            </div>
+          </form>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead><tr><th>Kategori</th><th class="kanan">Urutan</th><th class="kanan">Produk</th><th></th></tr></thead>
+              <tbody id="tbody-kategori"><tr><td colspan="4">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel" id="panel-form-produk" style="display:none">
+          <h2 id="judul-form-produk">Tambah Produk</h2>
+          <form class="form" id="form-produk">
+            <div class="row">
+              <div class="baris" style="flex:1;min-width:150px"><label for="p-id">ID produk</label><input id="p-id" required pattern="[a-z0-9-]{3,40}" placeholder="pc-005" /></div>
+              <div class="baris" style="flex:1;min-width:150px"><label for="p-kategori">Kategori</label><select id="p-kategori" required></select></div>
+            </div>
+            <div class="baris"><label for="p-nama">Nama produk</label><input id="p-nama" required minlength="3" maxlength="120" /></div>
+            <div class="row">
+              <div class="baris" style="flex:1;min-width:140px"><label for="p-grup">Grup</label><input id="p-grup" maxlength="60" placeholder="-" /></div>
+              <div class="baris" style="flex:1;min-width:140px"><label for="p-member">Member</label><input id="p-member" maxlength="60" placeholder="-" /></div>
+              <div class="baris" style="flex:1;min-width:130px"><label for="p-harga">Harga (Rp)</label><input type="number" id="p-harga" min="0" required /></div>
+            </div>
+            <div class="row">
+              <div class="baris" style="flex:1;min-width:120px"><label for="p-stok">Stok</label><input type="number" id="p-stok" min="0" required /></div>
+              <div class="baris" style="flex:1;min-width:120px"><label for="p-kondisi">Kondisi</label><select id="p-kondisi"><option value="baru">Baru</option><option value="bekas">Bekas</option></select></div>
+              <div class="baris" style="flex:2;min-width:180px"><label for="p-estimasi">Estimasi kedatangan (pre-order)</label><input id="p-estimasi" maxlength="120" placeholder="estimasi 60 hari sejak ditutup (CONTOH)" /></div>
+            </div>
+            <div class="baris"><label for="p-deskripsi">Deskripsi</label><textarea id="p-deskripsi" rows="3" maxlength="2000"></textarea></div>
+            <div class="row">
+              <label class="kotak-persetujuan"><input type="checkbox" id="p-preorder" /> Pre-order</label>
+              <label class="kotak-persetujuan"><input type="checkbox" id="p-unggulan" /> Produk unggulan</label>
+              <label class="kotak-persetujuan"><input type="checkbox" id="p-aktif" checked /> Aktif (tampil di katalog)</label>
+            </div>
+            <div class="baris">
+              <label for="p-foto">Foto produk (JPG/PNG/WEBP, maksimal 5 MB)</label>
+              <input type="file" id="p-foto" accept="image/jpeg,image/png,image/webp" />
+            </div>
+            <div class="row">
+              <button class="tombol" type="submit">Simpan Produk</button>
+              <button class="tombol tombol-kedua" type="button" id="btnBatalProduk">Batal</button>
+            </div>
+          </form>
+
+          <div id="bagian-varian" style="display:none;border-top:1.5px dashed var(--border);padding-top:12px;margin-top:10px">
+            <h3 class="util-mb-0">Varian Produk</h3>
+            <div id="pesan-varian" class="pesan pesan-tersembunyi"></div>
+            <div id="daftar-varian"></div>
+            <div class="row">
+              <div class="baris" style="flex:1;min-width:110px"><label for="v-nama">Nama varian</label><input id="v-nama" maxlength="40" placeholder="Warna" /></div>
+              <div class="baris" style="flex:1;min-width:110px"><label for="v-nilai">Nilai</label><input id="v-nilai" maxlength="60" placeholder="Pink" /></div>
+              <div class="baris" style="flex:1;min-width:120px"><label for="v-tambahan">Harga tambahan (Rp)</label><input type="number" id="v-tambahan" min="0" value="0" /></div>
+              <div class="baris" style="flex:1;min-width:100px"><label for="v-stok">Stok (opsional)</label><input type="number" id="v-stok" min="0" placeholder="tanpa batas" /></div>
+            </div>
+            <button class="tombol tombol-kecil" type="button" id="btnTambahVarian">+ Tambah Varian</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PESANAN -->
+      <div class="panel-tab" id="tab-pesanan">
+        <div class="panel">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Pesanan Reguler & Pre-Order</h2>
+            <div class="row">
+              <select id="filter-tipe" style="padding:7px;border-radius:8px;border:1.5px solid var(--border)">
+                <option value="">Semua tipe</option><option value="reguler">Reguler</option><option value="preorder">Pre-order</option>
+              </select>
+              <select id="filter-status" style="padding:7px;border-radius:8px;border:1.5px solid var(--border)">
+                <option value="">Semua status</option>
+              </select>
+            </div>
+          </div>
+          <div id="pesan-pesanan" class="pesan pesan-tersembunyi"></div>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead><tr><th>Kode</th><th>Pembeli</th><th>Item</th><th class="kanan">Total</th><th>Status</th><th></th><th></th></tr></thead>
+              <tbody id="tbody-pesanan"><tr><td colspan="7">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="detail-pesanan"></div>
+        </div>
+      </div>
+
+      <!-- CUSTOM -->
+      <div class="panel-tab" id="tab-custom">
+        <div class="panel">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Pesanan Custom (Stiker & Pin Button)</h2>
+            <select id="filter-status-custom" style="padding:7px;border-radius:8px;border:1.5px solid var(--border)">
+              <option value="">Semua status</option>
+            </select>
+          </div>
+          <div id="pesan-custom" class="pesan pesan-tersembunyi"></div>
+          <div id="daftar-custom"><p class="abu">Memuat…</p></div>
+        </div>
+      </div>
+
+      <!-- ULASAN -->
+      <div class="panel-tab" id="tab-ulasan">
+        <div class="panel">
+          <div class="row row-antara">
+            <h2 class="util-mb-0">Ulasan &amp; Rating</h2>
+            <p id="ringkas-ulasan" class="kecil abu util-mb-0">Memuat…</p>
+          </div>
+          <div id="pesan-ulasan" class="pesan pesan-tersembunyi"></div>
+          <div class="tabel-bungkus" style="margin-top:8px">
+            <table class="tabel">
+              <thead><tr><th>Nama</th><th>Produk</th><th>Rating</th><th>Komentar</th><th>Tanggal</th><th></th></tr></thead>
+              <tbody id="tbody-ulasan"><tr><td colspan="6">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- PELANGGAN -->
+      <div class="panel-tab" id="tab-pelanggan">
+        <div class="panel">
+          <h2>Data Pelanggan</h2>
+          <p class="kecil abu">Diurutkan dari pelanggan dengan pesanan terbanyak. Tekan Riwayat untuk melihat rincian &amp; total belanja.</p>
+          <div class="tabel-bungkus">
+            <table class="tabel">
+              <thead><tr><th>Nama</th><th>WhatsApp</th><th class="kanan">Jumlah Pesanan</th><th class="kanan">Total Belanja</th><th></th></tr></thead>
+              <tbody id="tbody-pelanggan"><tr><td colspan="5">Memuat…</td></tr></tbody>
+            </table>
+          </div>
+          <div id="detail-pelanggan"></div>
+        </div>
+      </div>
+
+      <!-- QR -->
+      <div class="panel-tab" id="tab-qr">
+        <div class="panel">
+          <h2>Generator QR Code</h2>
+          <p class="kecil abu">Hasilkan QR Code PNG menuju URL toko (atau URL lain) untuk dicetak pada kemasan atau media promosi.</p>
+          <div class="form">
+            <div class="baris">
+              <label for="qr-url">URL tujuan</label>
+              <input type="url" id="qr-url" placeholder="https://…" />
+            </div>
+            <div class="row">
+              <a class="tombol" id="qr-unduh" href="#" download="qr-toko.png">Unduh QR PNG</a>
+              <span class="kecil abu">Pratinjau:</span>
+            </div>
+            <img id="qr-pratinjau" alt="Pratinjau QR Code" width="220" height="220" style="border:1px solid var(--border);border-radius:12px;background:#fff" />
+          </div>
+        </div>
+      </div>
+
+      <!-- AKUN ADMIN -->
+      <div class="panel-tab" id="tab-akun">
+        <div class="panel">
+          <h2>Data Akun Admin</h2>
+          <p class="kecil abu">Perubahan disimpan pada berkas <code>.env</code> dan langsung dipakai untuk masuk berikutnya.</p>
+          <div id="pesan-akun" class="pesan pesan-tersembunyi"></div>
+          <form class="form" id="form-akun-admin" style="max-width:460px">
+            <div class="baris">
+              <label for="ak-email">Email admin</label>
+              <input type="email" id="ak-email" autocomplete="email" required />
+            </div>
+            <div class="baris">
+              <label for="ak-sandi-sekarang">Kata sandi saat ini</label>
+              <input type="password" id="ak-sandi-sekarang" autocomplete="current-password" required />
+            </div>
+            <div class="baris">
+              <label for="ak-sandi-baru">Kata sandi baru (kosongkan bila tidak diganti)</label>
+              <input type="password" id="ak-sandi-baru" autocomplete="new-password" />
+              <span class="bantuan">Minimal 8 karakter, mengandung huruf dan angka.</span>
+            </div>
+            <div class="row">
+              <button class="tombol" type="submit">Simpan Perubahan</button>
+              <button class="tombol tombol-kedua" type="button" id="btnPindah3">Pindah Akun</button>
+              <button class="tombol tombol-kedua" type="button" id="btnKeluar2">Keluar</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="/js/util.js"></script>
+  <script>
+    const el = (id) => document.getElementById(id);
+    let kategori = [];
+
+    function tampilkanPesan(id, teks, jenis) {
+      const w = el(id);
+      w.className = 'pesan pesan-' + (jenis || 'sukses');
+      w.textContent = teks;
+      w.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => w.classList.add('pesan-tersembunyi'), 6000);
+    }
+
+    // --- Autentikasi ---
+    async function periksaSesi() {
+      try {
+        const d = await Clora.api('/admin/sesi');
+        if (d.email) el('judul-sesi').textContent = 'Admin · ' + d.email;
+        tampilkanDasbor();
+        return true;
+      } catch {
+        el('layar-masuk').style.display = '';
+        el('layar-dasbor').style.display = 'none';
+        return false;
+      }
+    }
+
+    function tampilkanDasbor() {
+      el('layar-masuk').style.display = 'none';
+      el('layar-dasbor').style.display = '';
+      el('btnKeluar').style.display = '';
+      el('btnPindah').style.display = '';
+      el('btnAkun').style.display = '';
+      // Lonceng tidak boleh menghalangi pemuatan data dasbor
+      try { Clora.notifikasi && Clora.notifikasi.pasang(el('lonceng-wadah')); }
+      catch (e) { console.warn('Lonceng tidak dapat dipasang:', e); }
+      // Setiap pemuat berjalan mandiri agar satu kegagalan tidak menghentikan tab lain
+      const pemuat = [muatRingkasan, muatProduk, muatKategoriAdmin, muatPesanan, muatCustom, muatUlasan, muatPelanggan, muatAkunAdmin];
+      for (const muat of pemuat) {
+        try { muat(); } catch (e) { console.error('Gagal memuat data:', e); }
+      }
+    }
+
+    el('btnMasuk').addEventListener('click', async () => {
+      try {
+        const d = await Clora.api('/admin/login', {
+          method: 'POST', tanpaSesi: true,
+          data: { email: el('email').value, sandi: el('sandi').value },
+        });
+        el('sandi').value = '';
+        tampilkanDasbor();
+      } catch (e) {
+        tampilkanPesan('pesan-masuk', e.message, 'galat');
+      }
+    });
+    el('sandi').addEventListener('keydown', (e) => { if (e.key === 'Enter') el('btnMasuk').click(); });
+
+    el('btnKeluar').addEventListener('click', async () => {
+      await Clora.api('/admin/logout', { method: 'POST' });
+      location.href = '/akun?pilihan=admin';
+    });
+
+    // Pindah akun: keluar dari sesi admin dan kembali ke pilihan Admin/Pelanggan
+    el('btnPindah').addEventListener('click', async () => {
+      try { await Clora.api('/admin/logout', { method: 'POST' }); } catch { /* abaikan */ }
+      location.href = '/akun';
+    });
+
+    // Buka tab pengaturan akun admin
+    el('btnAkun').addEventListener('click', () => {
+      document.querySelector('.tab-bar button[data-tab="akun"]').click();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
+    // --- Akun admin: muat & simpan ---
+    async function muatAkunAdmin() {
+      try {
+        const d = await Clora.api('/admin/akun');
+        el('ak-email').value = d.email;
+      } catch (e) {
+        tampilkanPesan('pesan-akun', 'Gagal memuat data akun: ' + e.message, 'galat');
+      }
+    }
+
+    el('form-akun-admin').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      try {
+        const d = await Clora.api('/admin/akun', {
+          method: 'PUT',
+          data: {
+            email: el('ak-email').value,
+            sandiSekarang: el('ak-sandi-sekarang').value,
+            sandiBaru: el('ak-sandi-baru').value,
+          },
+        });
+        tampilkanPesan('pesan-akun', d.pesan, 'sukses');
+        el('ak-sandi-sekarang').value = el('ak-sandi-baru').value = '';
+        el('judul-sesi').textContent = 'Admin · ' + d.email;
+      } catch (e) {
+        tampilkanPesan('pesan-akun', e.message, 'galat');
+      }
+    });
+
+    el('btnPindah3').addEventListener('click', () => el('btnPindah').click());
+    el('btnKeluar2').addEventListener('click', () => el('btnKeluar').click());
+
+    // --- Tab ---
+    document.querySelectorAll('.tab-bar button').forEach((b) =>
+      b.addEventListener('click', () => {
+        document.querySelectorAll('.tab-bar button').forEach((x) => x.classList.remove('aktif'));
+        document.querySelectorAll('.panel-tab').forEach((x) => x.classList.remove('aktif'));
+        b.classList.add('aktif');
+        el('tab-' + b.dataset.tab).classList.add('aktif');
+      })
+    );
+
+    // --- Ringkasan ---
+    async function muatRingkasan() {
+      try {
+        const d = await Clora.api('/admin/rekap');
+        el('st-total').textContent = d.totalPesanan;
+        el('st-pendapatan').textContent = Clora.rupiah(d.pendapatan);
+        el('st-reguler').textContent = d.totalPesananReguler;
+        el('st-custom').textContent = d.totalPesananCustom;
+        el('st-produk').innerHTML = d.perProduk.length
+          ? d.perProduk.map((p) =>
+              `<tr><td>${Clora.esc(p.nama)}</td><td class="kanan">${p.terjual}</td><td class="kanan">${Clora.rupiah(p.pendapatan)}</td></tr>`
+            ).join('')
+          : '<tr><td colspan="3">Belum ada data penjualan.</td></tr>';
+      } catch (e) {
+        ['st-total', 'st-pendapatan', 'st-reguler', 'st-custom'].forEach((id) => (el(id).textContent = '—'));
+        el('st-produk').innerHTML = '<tr><td colspan="3">Gagal memuat rekap: ' + Clora.esc(e.message) + '</td></tr>';
+        tampilkanPesan('pesan-umum', 'Gagal memuat rekap penjualan: ' + e.message, 'galat');
+      }
+    }
+
+    // --- Produk ---
+    let daftarProduk = [];
+
+    async function muatProduk() {
+      try {
+        if (!kategori.length) {
+          kategori = await Clora.api('/kategori');
+          el('p-kategori').innerHTML = kategori.map((k) => `<option value="${k.id}">${Clora.esc(k.nama)}</option>`).join('');
+        }
+        daftarProduk = await Clora.api('/admin/produk');
+        el('tbody-produk').innerHTML = daftarProduk.length
+          ? daftarProduk.map((p) =>
+          `<tr>
+            <td>${Clora.esc(p.nama)}<br><span class="kecil abu">${Clora.esc(p.id)}</span></td>
+            <td>${Clora.esc(p.kategori)}</td>
+            <td class="kanan">${Clora.rupiah(p.harga)}</td>
+            <td class="kanan">${p.stok}</td>
+            <td>${p.aktif ? '<span class="lencana lencana-baru">Aktif</span>' : '<span class="lencana lencana-habis">Nonaktif</span>'}
+                ${p.preOrder ? '<span class="lencana lencana-preorder">PO</span>' : ''}</td>
+            <td class="row">
+              <button class="tombol tombol-kedua tombol-kecil ubah" data-id="${Clora.esc(p.id)}">Ubah</button>
+              <button class="tombol tombol-kedua tombol-kecil hapus" data-id="${Clora.esc(p.id)}">Hapus</button>
+            </td>
+          </tr>`
+        ).join('') : '<tr><td colspan="6">Belum ada data produk. Tambahkan produk pertama Anda.</td></tr>';
+
+        document.querySelectorAll('.ubah').forEach((b) => b.addEventListener('click', () => isiFormProduk(b.dataset.id)));
+        document.querySelectorAll('.hapus').forEach((b) =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Hapus atau nonaktifkan produk ' + b.dataset.id + '?')) return;
+            try {
+              const d = await Clora.api('/admin/produk/' + encodeURIComponent(b.dataset.id), { method: 'DELETE' });
+              tampilkanPesan('pesan-produk', d.pesan, 'sukses');
+              muatProduk();
+            } catch (e) { tampilkanPesan('pesan-produk', e.message, 'galat'); }
+          })
+        );
+      } catch (e) {
+        el('tbody-produk').innerHTML = '<tr><td colspan="6">Gagal memuat produk: ' + Clora.esc(e.message) + '</td></tr>';
+        tampilkanPesan('pesan-produk', 'Gagal memuat produk: ' + e.message, 'galat');
+      }
+    }
+
+    let idProdukUbah = null;
+    el('btnTambahProduk').addEventListener('click', () => {
+      idProdukUbah = null;
+      el('judul-form-produk').textContent = 'Tambah Produk';
+      el('form-produk').reset();
+      el('p-aktif').checked = true;
+      el('p-id').disabled = false;
+      el('bagian-varian').style.display = 'none';
+      el('panel-form-produk').style.display = '';
+      el('panel-form-produk').scrollIntoView({ behavior: 'smooth' });
+    });
+    el('btnBatalProduk').addEventListener('click', () => (el('panel-form-produk').style.display = 'none'));
+
+    function isiFormProduk(id) {
+      const p = daftarProduk.find((x) => x.id === id);
+      if (!p) return;
+      idProdukUbah = id;
+      el('judul-form-produk').textContent = 'Ubah Produk';
+      el('p-id').disabled = true;
+      el('p-id').value = p.id;
+      el('p-kategori').value = p.kategori;
+      el('p-nama').value = p.nama;
+      el('p-grup').value = p.grup;
+      el('p-member').value = p.member;
+      el('p-harga').value = p.harga;
+      el('p-stok').value = p.stok;
+      el('p-kondisi').value = p.kondisi;
+      el('p-estimasi').value = p.estimasiKedatangan || '';
+      el('p-deskripsi').value = p.deskripsi;
+      el('p-preorder').checked = p.preOrder;
+      el('p-unggulan').checked = p.unggulan;
+      el('p-aktif').checked = p.aktif;
+      el('bagian-varian').style.display = '';
+      tampilVarian(p.varian || []);
+      el('panel-form-produk').style.display = '';
+      el('panel-form-produk').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    el('form-produk').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const data = {
+        id: el('p-id').value.trim(),
+        kategori: el('p-kategori').value,
+        nama: el('p-nama').value,
+        grup: el('p-grup').value || '-',
+        member: el('p-member').value || '-',
+        harga: Number(el('p-harga').value),
+        stok: Number(el('p-stok').value),
+        kondisi: el('p-kondisi').value,
+        estimasiKedatangan: el('p-estimasi').value || null,
+        deskripsi: el('p-deskripsi').value,
+        preOrder: el('p-preorder').checked,
+        unggulan: el('p-unggulan').checked,
+        aktif: el('p-aktif').checked,
+      };
+      try {
+        const idSimpan = idProdukUbah || data.id;
+        const d = idProdukUbah
+          ? await Clora.api('/admin/produk/' + encodeURIComponent(idProdukUbah), { method: 'PUT', data })
+          : await Clora.api('/admin/produk', { method: 'POST', data });
+        const berkas = el('p-foto').files[0];
+        if (berkas) {
+          const fd = new FormData();
+          fd.append('foto', berkas);
+          const res = await fetch('/api/admin/produk/' + encodeURIComponent(idSimpan) + '/foto', { method: 'POST', body: fd });
+          const df = await res.json();
+          if (!res.ok) throw new Error(df.pesan);
+        }
+        tampilkanPesan('pesan-produk', d.pesan, 'sukses');
+        el('panel-form-produk').style.display = 'none';
+        muatProduk();
+      } catch (e) {
+        tampilkanPesan('pesan-produk', e.message, 'galat');
+      }
+    });
+
+    // --- Kategori ---
+    async function muatKategoriAdmin() {
+      try {
+        const daftar = await Clora.api('/admin/kategori');
+        el('tbody-kategori').innerHTML =
+          daftar.map((k) =>
+            `<tr>
+              <td>${Clora.esc(k.nama)}<br><span class="kecil abu">${Clora.esc(k.id)}</span></td>
+              <td class="kanan">${k.urutan}</td>
+              <td class="kanan">${k.jumlahProduk}</td>
+              <td class="row">
+                <button class="tombol tombol-kedua tombol-kecil ubah-kategori" data-id="${Clora.esc(k.id)}" data-nama="${Clora.esc(k.nama)}" data-urutan="${k.urutan}">Ubah</button>
+                <button class="tombol tombol-kedua tombol-kecil hapus-kategori" data-id="${Clora.esc(k.id)}">Hapus</button>
+              </td>
+            </tr>`
+          ).join('') || '<tr><td colspan="4">Belum ada kategori.</td></tr>';
+        // segarkan pilihan kategori pada form produk
+        kategori = await Clora.api('/kategori');
+        el('p-kategori').innerHTML = kategori
+          .map((k) => `<option value="${k.id}">${Clora.esc(k.nama)}</option>`)
+          .join('');
+        document.querySelectorAll('.ubah-kategori').forEach((b) =>
+          b.addEventListener('click', () => {
+            el('form-kategori').style.display = '';
+            el('k-id').value = b.dataset.id;
+            el('k-nama').value = b.dataset.nama;
+            el('k-urutan').value = b.dataset.urutan;
+            el('k-nama').focus();
+          })
+        );
+        document.querySelectorAll('.hapus-kategori').forEach((b) =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Hapus kategori ' + b.dataset.id + '?')) return;
+            try {
+              const d = await Clora.api('/admin/kategori/' + encodeURIComponent(b.dataset.id), { method: 'DELETE' });
+              tampilkanPesan('pesan-kategori', d.pesan, 'sukses');
+              muatKategoriAdmin();
+            } catch (e) {
+              tampilkanPesan('pesan-kategori', e.message, 'galat');
+            }
+          })
+        );
+      } catch (e) {
+        el('tbody-kategori').innerHTML = '<tr><td colspan="4">Gagal memuat kategori: ' + Clora.esc(e.message) + '</td></tr>';
+      }
+    }
+
+    el('btnTambahKategori').addEventListener('click', () => {
+      el('form-kategori').reset();
+      el('k-id').value = '';
+      el('form-kategori').style.display = '';
+      el('k-nama').focus();
+    });
+    el('btnBatalKategori').addEventListener('click', () => (el('form-kategori').style.display = 'none'));
+    el('form-kategori').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const data = { nama: el('k-nama').value, urutan: Number(el('k-urutan').value) };
+      try {
+        const id = el('k-id').value;
+        const d = id
+          ? await Clora.api('/admin/kategori/' + encodeURIComponent(id), { method: 'PUT', data })
+          : await Clora.api('/admin/kategori', { method: 'POST', data });
+        tampilkanPesan('pesan-kategori', d.pesan, 'sukses');
+        el('form-kategori').style.display = 'none';
+        muatKategoriAdmin();
+      } catch (e) {
+        tampilkanPesan('pesan-kategori', e.message, 'galat');
+      }
+    });
+
+    // --- Varian (dikelola dari dalam form ubah produk) ---
+    function tampilVarian(daftar) {
+      el('daftar-varian').innerHTML = daftar.length
+        ? daftar.map((v) =>
+            `<div class="row row-antara" style="border-bottom:1px solid var(--border);padding:6px 0">
+              <span>${Clora.esc(v.nama)}: ${Clora.esc(v.nilai)}${v.harga_tambahan ? ' · +' + Clora.rupiah(v.harga_tambahan) : ''}
+                <span class="kecil abu">· stok ${v.stok === null ? 'tanpa batas' : v.stok}</span></span>
+              <button class="tombol tombol-kedua tombol-kecil hapus-varian" data-id="${v.id}">Hapus</button>
+            </div>`
+          ).join('')
+        : '<p class="abu">Belum ada varian.</p>';
+      document.querySelectorAll('.hapus-varian').forEach((b) =>
+        b.addEventListener('click', async () => {
+          if (!confirm('Hapus varian ini?')) return;
+          try {
+            const d = await Clora.api('/admin/varian/' + b.dataset.id, { method: 'DELETE' });
+            tampilkanPesan('pesan-varian', d.pesan, 'sukses');
+            muatVarianProduk();
+            muatProduk();
+          } catch (e) {
+            tampilkanPesan('pesan-varian', e.message, 'galat');
+          }
+        })
+      );
+    }
+
+    async function muatVarianProduk() {
+      if (!idProdukUbah) return;
+      try {
+        const p = await Clora.api('/produk/' + encodeURIComponent(idProdukUbah));
+        tampilVarian(p.varian || []);
+      } catch (e) {
+        el('daftar-varian').innerHTML = '<p class="abu">Gagal memuat varian.</p>';
+      }
+    }
+
+    el('btnTambahVarian').addEventListener('click', async () => {
+      if (!idProdukUbah) return;
+      const data = {
+        nama: el('v-nama').value,
+        nilai: el('v-nilai').value,
+        hargaTambahan: Number(el('v-tambahan').value || 0),
+        stok: el('v-stok').value === '' ? null : Number(el('v-stok').value),
+      };
+      try {
+        const d = await Clora.api('/admin/produk/' + encodeURIComponent(idProdukUbah) + '/varian', { method: 'POST', data });
+        tampilkanPesan('pesan-varian', d.pesan, 'sukses');
+        el('v-nama').value = '';
+        el('v-nilai').value = '';
+        el('v-tambahan').value = 0;
+        el('v-stok').value = '';
+        muatVarianProduk();
+        muatProduk();
+      } catch (e) {
+        tampilkanPesan('pesan-varian', e.message, 'galat');
+      }
+    });
+
+    // --- Pesanan reguler ---
+    async function muatPesanan() {
+      const fs = el('filter-status');
+      if (fs.options.length === 1) {
+        Clora.daftarStatusPesanan.forEach((s) => fs.add(new Option(Clora.labelStatus(s), s)));
+      }
+      const q = new URLSearchParams();
+      if (el('filter-tipe').value) q.set('tipe', el('filter-tipe').value);
+      if (fs.value) q.set('status', fs.value);
+      try {
+        const daftar = await Clora.api('/admin/pesanan?' + q.toString());
+        el('tbody-pesanan').innerHTML = daftar.length ? daftar.map((p) =>
+          `<tr>
+            <td>${Clora.esc(p.kode)}<br><span class="kecil abu">${Clora.esc(p.createdAt)}</span></td>
+            <td>${Clora.esc(p.nama)}<br><span class="kecil abu">${Clora.esc(p.wa)}</span></td>
+            <td class="kecil">${p.items.map((i) => Clora.esc(i.nama) + (i.varian ? ' (' + Clora.esc(i.varian) + ')' : '') + ' ×' + i.jumlah).join('<br>')}</td>
+            <td class="kanan">${Clora.rupiah(p.total)}<br><span class="kecil abu">${Clora.esc(p.metodePembayaran)}${p.adaBukti ? ' · bukti ✓' : ''}</span></td>
+            <td><span class="lencana lencana-status">${Clora.labelStatus(p.status)}</span></td>
+            <td>
+              <select class="ubah-status" data-id="${p.id}" style="padding:5px;border-radius:8px;border:1px solid var(--border);font-size:0.8rem">
+                ${Clora.daftarStatusPesanan.map((s) => `<option value="${s}" ${s === p.status ? 'selected' : ''}>${Clora.labelStatus(s)}</option>`).join('')}
+              </select>
+            </td>
+            <td><button class="tombol tombol-kedua tombol-kecil lihat-detail" data-id="${p.id}">Detail</button></td>
+          </tr>`
+        ).join('') : '<tr><td colspan="7">Belum ada data pesanan.</td></tr>';
+
+        document.querySelectorAll('.lihat-detail').forEach((b) =>
+          b.addEventListener('click', () => tampilkanDetailPesanan(b.dataset.id))
+        );
+        document.querySelectorAll('.ubah-status').forEach((s) =>
+          s.addEventListener('change', async () => {
+            try {
+              const d = await Clora.api('/admin/pesanan/' + s.dataset.id + '/status', {
+                method: 'PUT', data: { status: s.value },
+              });
+              tampilkanPesan('pesan-pesanan', d.pesan, 'sukses');
+            } catch (e) {
+              tampilkanPesan('pesan-pesanan', e.message, 'galat');
+              muatPesanan();
+            }
+          })
+        );
+      } catch (e) {
+        el('tbody-pesanan').innerHTML = '<tr><td colspan="7">Gagal memuat pesanan: ' + Clora.esc(e.message) + '</td></tr>';
+        tampilkanPesan('pesan-pesanan', 'Gagal memuat pesanan: ' + e.message, 'galat');
+      }
+    }
+
+    // Detail pesanan: alamat, rincian item, dan bukti bayar
+    async function tampilkanDetailPesanan(id) {
+      const wadah = el('detail-pesanan');
+      wadah.innerHTML = '<p class="abu">Memuat detail…</p>';
+      wadah.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      try {
+        const d = await Clora.api('/admin/pesanan/' + id);
+        const p = d.pesanan;
+        wadah.innerHTML = `
+          <div class="panel">
+            <div class="row row-antara">
+              <h3 class="util-mb-0">Detail Pesanan ${Clora.esc(p.kode)}</h3>
+              <button class="tombol tombol-kedua tombol-kecil" id="tutup-detail">Tutup</button>
+            </div>
+            <p class="kecil abu util-mb-0">${Clora.esc(p.tipe === 'preorder' ? 'Pre-order' : 'Reguler')} · ${Clora.esc(p.createdAt)} · status ${Clora.labelStatus(p.status)}</p>
+            <div class="tabel-bungkus" style="margin-top:8px">
+              <table class="tabel"><tbody>
+                <tr><td><strong>Pembeli</strong></td><td>${Clora.esc(p.nama)} · ${Clora.esc(p.wa)}${p.akunEmail ? '<br><span class="kecil abu">Akun: ' + Clora.esc(p.akunEmail) + '</span>' : ''}</td></tr>
+                <tr><td><strong>Alamat</strong></td><td>${Clora.esc(p.alamat || '-')}</td></tr>
+                <tr><td><strong>Pengiriman</strong></td><td>${Clora.esc(p.ekspedisi || '-')} · ongkir ${Clora.rupiah(p.ongkir)} · ${Clora.esc(p.metodePembayaran)}</td></tr>
+                <tr><td><strong>Catatan</strong></td><td>${Clora.esc(p.catatan || '-')}</td></tr>
+                ${p.items.map((i) => `<tr><td>${Clora.esc(i.nama)}${i.varian ? ' (' + Clora.esc(i.varian) + ')' : ''} × ${i.jumlah}</td><td class="kanan">${Clora.rupiah(i.harga * i.jumlah)}</td></tr>`).join('')}
+                <tr><td><strong>Subtotal</strong></td><td class="kanan"><strong>${Clora.rupiah(p.subtotal)}</strong></td></tr>
+                <tr><td><strong>Total</strong></td><td class="kanan"><strong>${Clora.rupiah(p.total)}</strong></td></tr>
+              </tbody></table>
+            </div>
+            <h3 style="margin-top:14px">Bukti Bayar</h3>
+            ${p.bukti
+              ? `<img src="/uploads/${Clora.esc(p.bukti)}" alt="Bukti bayar ${Clora.esc(p.kode)}" style="max-width:320px;border:1px solid var(--border);border-radius:10px">`
+              : '<p class="kecil abu">Belum ada bukti bayar diunggah.</p>'}
+          </div>`;
+        el('tutup-detail').addEventListener('click', () => (wadah.innerHTML = ''));
+      } catch (e) {
+        wadah.innerHTML = '<p class="pesan pesan-galat">Gagal memuat detail: ' + Clora.esc(e.message) + '</p>';
+      }
+    }
+    el('filter-tipe').addEventListener('change', muatPesanan);
+    el('filter-status').addEventListener('change', muatPesanan);
+
+    // --- Pesanan custom ---
+    async function muatCustom() {
+      const fs = el('filter-status-custom');
+      if (fs.options.length === 1) {
+        Clora.daftarStatusCustom.forEach((s) => fs.add(new Option(Clora.labelStatus(s), s)));
+      }
+      try {
+        const daftar = await Clora.api('/admin/custom' + (fs.value ? '?status=' + fs.value : ''));
+        el('daftar-custom').innerHTML = daftar.map((c) => `
+          <div class="panel" style="margin:10px 0">
+            <div class="row row-antara">
+              <strong>${Clora.esc(c.kode)}</strong>
+              <span class="lencana lencana-status">${Clora.labelStatus(c.status)}</span>
+            </div>
+            <p class="kecil abu util-mb-0">${Clora.esc(c.nama)} · ${Clora.esc(c.wa)} · ${Clora.esc(c.tipeCustom)} · ukuran ${Clora.esc(c.ukuranId)}, bahan ${Clora.esc(c.bahanId)}, bentuk ${Clora.esc(c.bentukId)} · jumlah ${c.jumlah} · total ${Clora.rupiah(c.total)} · ${Clora.esc(c.createdAt)}${c.accPembeli ? ' · disetujui pembeli' : ''}</p>
+            <p class="kecil">Desain: ${c.desainFile
+              ? `<a href="/uploads/${Clora.esc(c.desainFile)}" target="_blank">lihat berkas</a>`
+              : 'belum ada'}</p>
+            <div class="tabel-bungkus">
+              <table class="tabel"><tbody>
+                ${c.komentar.map((k) =>
+                  `<tr><td><strong>${k.pengirim === 'admin' ? 'Admin' : 'Pembeli'}</strong> <span class="kecil abu">${Clora.esc(k.waktu)}</span><br>${Clora.esc(k.isi)}</td></tr>`
+                ).join('') || '<tr><td class="kecil abu">Belum ada komentar.</td></tr>'}
+              </tbody></table>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <div class="baris" style="flex:2;min-width:200px">
+                <textarea id="komentar-${c.id}" rows="2" maxlength="500" placeholder="Komentar peninjauan (wajib untuk aksi revisi/setujui)" style="padding:8px;border:1.5px solid var(--border);border-radius:10px;font-family:inherit"></textarea>
+              </div>
+              <div class="row">
+                <button class="tombol tombol-kedua tombol-kecil tinjau" data-id="${c.id}" data-aksi="revisi">Minta Revisi</button>
+                <button class="tombol tombol-kecil tinjau" data-id="${c.id}" data-aksi="setujui">Setujui Desain</button>
+                <button class="tombol tombol-kecil tinjau" data-id="${c.id}" data-aksi="tolak" style="background:var(--bahaya)">Tolak</button>
+              </div>
+            </div>
+            <div class="row" style="margin-top:8px">
+              <span class="kecil abu">Ubah status:</span>
+              <select class="ubah-status-custom" data-id="${c.id}" style="padding:5px;border-radius:8px;border:1px solid var(--border);font-size:0.8rem">
+                ${Clora.daftarStatusCustom.map((s) => `<option value="${s}" ${s === c.status ? 'selected' : ''}>${Clora.labelStatus(s)}</option>`).join('')}
+              </select>
+            </div>
+          </div>`).join('') || '<p class="abu">Belum ada pesanan custom.</p>';
+
+        document.querySelectorAll('.tinjau').forEach((b) =>
+          b.addEventListener('click', async () => {
+            const komentar = el('komentar-' + b.dataset.id).value;
+            try {
+              const d = await Clora.api('/admin/custom/' + b.dataset.id + '/tinjau', {
+                method: 'POST', data: { aksi: b.dataset.aksi, komentar },
+              });
+              tampilkanPesan('pesan-custom', d.pesan, 'sukses');
+              muatCustom();
+            } catch (e) { tampilkanPesan('pesan-custom', e.message, 'galat'); }
+          })
+        );
+        document.querySelectorAll('.ubah-status-custom').forEach((s) =>
+          s.addEventListener('change', async () => {
+            try {
+              const d = await Clora.api('/admin/custom/' + s.dataset.id + '/status', {
+                method: 'PUT', data: { status: s.value },
+              });
+              tampilkanPesan('pesan-custom', d.pesan, 'sukses');
+              muatCustom();
+            } catch (e) {
+              tampilkanPesan('pesan-custom', e.message, 'galat');
+              muatCustom();
+            }
+          })
+        );
+      } catch (e) {
+        el('daftar-custom').innerHTML = '<p class="pesan pesan-galat">Gagal memuat pesanan custom: ' + Clora.esc(e.message) + '</p>';
+        tampilkanPesan('pesan-custom', 'Gagal memuat pesanan custom: ' + e.message, 'galat');
+      }
+    }
+    el('filter-status-custom').addEventListener('change', muatCustom);
+
+    // --- Ulasan ---
+    async function muatUlasan() {
+      try {
+        const d = await Clora.api('/admin/ulasan');
+        el('ringkas-ulasan').textContent = d.jumlah
+          ? `Rata-rata rating ${d.rata} dari ${d.jumlah} ulasan tampil.`
+          : 'Belum ada ulasan tampil di halaman publik.';
+        el('tbody-ulasan').innerHTML = d.daftar.length ? d.daftar.map((u) =>
+          `<tr${u.sembunyi ? ' class="baris-sembunyi"' : ''}>
+           <td>${Clora.esc(u.nama)}</td><td>${Clora.esc(u.namaProduk || '-')}</td>
+           <td>${'★'.repeat(u.rating)}</td><td>${Clora.esc(u.komentar)}${u.sembunyi ? ' <span class="lencana lencana-habis">Disembunyikan</span>' : ''}</td>
+           <td class="kecil">${Clora.esc(u.createdAt)}</td>
+           <td class="row" style="gap:6px">
+             <button class="tombol tombol-kedua tombol-kecil ubah-sembunyi" data-id="${u.id}" data-sembunyi="${u.sembunyi ? '1' : '0'}">${u.sembunyi ? 'Tampilkan' : 'Sembunyikan'}</button>
+             <button class="tombol tombol-kedua tombol-kecil hapus-ulasan" data-id="${u.id}" style="color:var(--bahaya);border-color:var(--bahaya)">Hapus</button>
+           </td>
+          </tr>`
+        ).join('') : '<tr><td colspan="6">Belum ada data ulasan.</td></tr>';
+
+        document.querySelectorAll('.ubah-sembunyi').forEach((b) =>
+          b.addEventListener('click', async () => {
+            try {
+              const d2 = await Clora.api('/admin/ulasan/' + b.dataset.id, {
+                method: 'PUT', data: { sembunyi: b.dataset.sembunyi !== '1' },
+              });
+              tampilkanPesan('pesan-ulasan', d2.pesan, 'sukses');
+              muatUlasan();
+            } catch (e) { tampilkanPesan('pesan-ulasan', e.message, 'galat'); }
+          })
+        );
+        document.querySelectorAll('.hapus-ulasan').forEach((b) =>
+          b.addEventListener('click', async () => {
+            if (!confirm('Hapus ulasan ini secara permanen?')) return;
+            try {
+              const d2 = await Clora.api('/admin/ulasan/' + b.dataset.id, { method: 'DELETE' });
+              tampilkanPesan('pesan-ulasan', d2.pesan, 'sukses');
+              muatUlasan();
+            } catch (e) { tampilkanPesan('pesan-ulasan', e.message, 'galat'); }
+          })
+        );
+      } catch (e) {
+        el('ringkas-ulasan').textContent = 'Gagal memuat ulasan.';
+        el('tbody-ulasan').innerHTML = '<tr><td colspan="6">Gagal memuat ulasan: ' + Clora.esc(e.message) + '</td></tr>';
+        tampilkanPesan('pesan-ulasan', 'Gagal memuat ulasan: ' + e.message, 'galat');
+      }
+    }
+
+    // --- Pelanggan ---
+    async function muatPelanggan() {
+      try {
+        const d = await Clora.api('/admin/pelanggan');
+        el('tbody-pelanggan').innerHTML = d.length ? d.map((p) =>
+          `<tr>
+           <td>${Clora.esc(p.nama)}</td><td>${Clora.esc(p.wa)}</td>
+           <td class="kanan">${p.jumlahPesanan}</td><td class="kanan">${Clora.rupiah(p.totalBelanja)}</td>
+           <td><button class="tombol tombol-kedua tombol-kecil lihat-riwayat" data-wa="${Clora.esc(p.wa)}">Riwayat</button></td>
+          </tr>`
+        ).join('') : '<tr><td colspan="5">Belum ada data pelanggan.</td></tr>';
+
+        document.querySelectorAll('.lihat-riwayat').forEach((b) =>
+          b.addEventListener('click', () => tampilkanRiwayatPelanggan(b.dataset.wa))
+        );
+      } catch (e) {
+        el('tbody-pelanggan').innerHTML = '<tr><td colspan="5">Gagal memuat data pelanggan: ' + Clora.esc(e.message) + '</td></tr>';
+        tampilkanPesan('pesan-umum', 'Gagal memuat data pelanggan: ' + e.message, 'galat');
+      }
+    }
+
+    // Riwayat & total belanja satu pelanggan
+    async function tampilkanRiwayatPelanggan(wa) {
+      const wadah = el('detail-pelanggan');
+      wadah.innerHTML = '<p class="abu">Memuat riwayat…</p>';
+      wadah.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      try {
+        const d = await Clora.api('/admin/pelanggan/' + encodeURIComponent(wa) + '/riwayat');
+        const baris = [...d.pesanan, ...d.custom]
+          .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))
+          .map((p) => `<tr>
+            <td>${Clora.esc(p.kode)}<br><span class="kecil abu">${Clora.esc(p.jenis === 'custom' ? 'custom' : p.tipe)}</span></td>
+            <td class="kecil">${Clora.esc(p.createdAt)}</td>
+            <td>${Clora.labelStatus(p.status)}</td>
+            <td class="kanan">${Clora.rupiah(p.total)}</td>
+          </tr>`).join('');
+        wadah.innerHTML = `
+          <div class="panel">
+            <div class="row row-antara">
+              <h3 class="util-mb-0">Riwayat Pelanggan ${Clora.esc(wa)}</h3>
+              <button class="tombol tombol-kedua tombol-kecil" id="tutup-riwayat">Tutup</button>
+            </div>
+            <p class="kecil abu util-mb-0">${d.jumlahPesanan} pesanan · total belanja <strong>${Clora.rupiah(d.totalBelanja)}</strong></p>
+            ${baris
+              ? `<div class="tabel-bungkus" style="margin-top:8px"><table class="tabel">
+                 <thead><tr><th>Kode</th><th>Tanggal</th><th>Status</th><th class="kanan">Total</th></tr></thead>
+                 <tbody>${baris}</tbody></table></div>`
+              : '<p class="abu">Belum ada data pesanan.</p>'}
+          </div>`;
+        el('tutup-riwayat').addEventListener('click', () => (wadah.innerHTML = ''));
+      } catch (e) {
+        wadah.innerHTML = '<p class="pesan pesan-galat">Gagal memuat riwayat: ' + Clora.esc(e.message) + '</p>';
+      }
+    }
+
+    // --- QR ---
+    (async () => {
+      try {
+        const p = await Clora.api('/pengaturan');
+        el('qr-url').value = location.origin;
+        perbaruiQr();
+        void p;
+      } catch (e) { /* abaikan */ }
+    })();
+
+    function perbaruiQr() {
+      const url = el('qr-url').value.trim();
+      if (!/^https?:\/\/.+/.test(url)) return;
+      const tujuan = '/api/qr?url=' + encodeURIComponent(url) + '&size=440';
+      el('qr-pratinjau').src = tujuan;
+      el('qr-unduh').href = '/api/qr?url=' + encodeURIComponent(url) + '&size=1024';
+    }
+    el('qr-url').addEventListener('input', perbaruiQr);
+
+    periksaSesi();
+  </script>
+</body>
+</html>

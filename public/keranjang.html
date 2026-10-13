@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Keranjang — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/ulasan">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="aktif keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <h1>Keranjang Belanja</h1>
+    <div id="daftar"></div>
+    <div class="panel" id="ringkasan" style="display:none">
+      <div class="row row-antara"><span>Subtotal</span><strong id="subtotal">Rp0</strong></div>
+      <p class="kecil abu">Ongkos kirim dihitung saat checkout sesuai ekspedisi yang dipilih.</p>
+      <a class="tombol tombol-lebar" href="/checkout">Lanjut ke Checkout</a>
+      <button class="tombol tombol-kedua tombol-lebar" id="btnKosong" style="margin-top:8px">Kosongkan Keranjang</button>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine.</p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+
+    function muat() {
+      const daftar = Clora.keranjang.ambil();
+      const wadah = document.getElementById('daftar');
+      if (!daftar.length) {
+        wadah.innerHTML = '<div class="pesan pesan-info">Keranjang kosong. <a href="/katalog">Mulai belanja</a>.</div>';
+        document.getElementById('ringkasan').style.display = 'none';
+        return;
+      }
+      let subtotal = 0;
+      wadah.innerHTML = '<div class="tabel-bungkus"><table class="tabel"><thead><tr>' +
+        '<th>Produk</th><th>Harga</th><th>Jumlah</th><th>Subtotal</th><th></th></tr></thead><tbody>' +
+        daftar.map((i, idx) => {
+          const total = i.harga * i.jumlah;
+          subtotal += total;
+          return `<tr>
+            <td><strong>${Clora.esc(i.nama)}</strong>${i.varianLabel ? '<br><span class="kecil abu">' + Clora.esc(i.varianLabel) + '</span>' : ''}</td>
+            <td>${Clora.rupiah(i.harga)}</td>
+            <td><input type="number" min="1" max="99" value="${i.jumlah}" data-idx="${idx}" class="ubah-jumlah" style="width:64px;padding:6px"></td>
+            <td>${Clora.rupiah(total)}</td>
+            <td><button class="tombol tombol-kedua tombol-kecil hapus" data-idx="${idx}">Hapus</button></td>
+          </tr>`;
+        }).join('') +
+        '</tbody></table></div>';
+      document.getElementById('subtotal').textContent = Clora.rupiah(subtotal);
+      document.getElementById('ringkasan').style.display = '';
+
+      document.querySelectorAll('.hapus').forEach((b) =>
+        b.addEventListener('click', () => { Clora.keranjang.hapus(Number(b.dataset.idx)); muat(); })
+      );
+      document.querySelectorAll('.ubah-jumlah').forEach((inp) =>
+        inp.addEventListener('change', () => {
+          Clora.keranjang.ubahJumlah(Number(inp.dataset.idx), Number(inp.value));
+          muat();
+        })
+      );
+    }
+
+    document.getElementById('btnKosong').addEventListener('click', () => {
+      if (confirm('Kosongkan seluruh isi keranjang?')) { Clora.keranjang.kosongkan(); muat(); }
+    });
+
+    muat();
+  </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Katalog — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog" class="aktif">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/ulasan">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <h1>Katalog</h1>
+
+    <form class="panel form" id="filter" onsubmit="return false">
+      <div class="baris">
+        <label for="q">Pencarian</label>
+        <input type="search" id="q" placeholder="Nama produk, grup, atau member" />
+      </div>
+      <div class="row">
+        <div class="baris" style="flex:1;min-width:150px">
+          <label for="kategori">Kategori</label>
+          <select id="kategori"><option value="">Semua kategori</option></select>
+        </div>
+        <div class="baris" style="flex:1;min-width:140px">
+          <label for="grup">Grup</label>
+          <select id="grup"><option value="">Semua grup</option></select>
+        </div>
+        <div class="baris" style="flex:1;min-width:140px">
+          <label for="member">Member</label>
+          <select id="member"><option value="">Semua member</option></select>
+        </div>
+      </div>
+      <div class="row">
+        <div class="baris" style="flex:1;min-width:130px">
+          <label for="hargaMin">Harga minimum</label>
+          <input type="number" id="hargaMin" min="0" placeholder="0" inputmode="numeric" />
+        </div>
+        <div class="baris" style="flex:1;min-width:130px">
+          <label for="hargaMaks">Harga maksimum</label>
+          <input type="number" id="hargaMaks" min="0" placeholder="Tanpa batas" inputmode="numeric" />
+        </div>
+        <div class="baris" style="flex:1;min-width:130px">
+          <label for="stok">Stok</label>
+          <select id="stok">
+            <option value="">Semua</option>
+            <option value="ada">Tersedia</option>
+            <option value="habis">Habis</option>
+          </select>
+        </div>
+        <div class="baris" style="flex:1;min-width:140px">
+          <label for="urut">Urutkan</label>
+          <select id="urut">
+            <option value="urut">Rekomendasi</option>
+            <option value="harga_asc">Harga terendah</option>
+            <option value="harga_desc">Harga tertinggi</option>
+            <option value="baru">Terbaru</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <label class="kotak-persetujuan"><input type="checkbox" id="preOrder" /> Hanya pre-order</label>
+        <label class="kotak-persetujuan"><input type="checkbox" id="unggulan" /> Hanya unggulan</label>
+        <button class="tombol tombol-kecil" id="btnReset" type="button">Atur ulang</button>
+      </div>
+    </form>
+
+    <p class="kecil abu" id="jumlahHasil">Memuat…</p>
+    <div class="kisi kisi-katalog" id="hasil"></div>
+    <p id="kosong" class="pesan pesan-info kelas-kirim">Tidak ada produk yang cocok dengan filter.</p>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine. </p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    const el = (id) => document.getElementById(id);
+
+    async function muatOpsi() {
+      try {
+        const [kategori, opsi] = await Promise.all([Clora.api('/kategori'), Clora.api('/filter-opsi')]);
+        kategori.forEach((k) => el('kategori').add(new Option(k.nama, k.id)));
+        opsi.grup.forEach((g) => el('grup').add(new Option(g, g)));
+        opsi.member.forEach((m) => el('member').add(new Option(m, m)));
+      } catch (e) { /* abaikan */ }
+    }
+
+    function bacaFilter() {
+      const p = new URLSearchParams();
+      const set = (k, v) => { if (v) p.set(k, v); };
+      set('q', el('q').value.trim());
+      set('kategori', el('kategori').value);
+      set('grup', el('grup').value);
+      set('member', el('member').value);
+      set('hargaMin', el('hargaMin').value);
+      set('hargaMaks', el('hargaMaks').value);
+      set('stok', el('stok').value);
+      set('urut', el('urut').value);
+      if (el('preOrder').checked) p.set('preOrder', '1');
+      if (el('unggulan').checked) p.set('unggulan', '1');
+      return p.toString();
+    }
+
+    async function muat() {
+      el('kosong').classList.add('kelas-kirim');
+      try {
+        const daftar = await Clora.api('/produk?' + bacaFilter());
+        el('jumlahHasil').textContent = daftar.length + ' produk ditemukan';
+        if (!daftar.length) {
+          el('hasil').innerHTML = '';
+          el('kosong').classList.remove('kelas-kirim');
+          return;
+        }
+        el('hasil').innerHTML = daftar.map(kartu).join('');
+      } catch (e) {
+        el('jumlahHasil').textContent = 'Gagal memuat produk: ' + Clora.esc(e.message);
+      }
+    }
+
+    function kartu(p) {
+      const zoom = p.kategori === 'photocard' ? ' zoom-sentuh' : '';
+      const lencana = [
+        p.preOrder ? '<span class="lencana lencana-preorder">Pre-Order</span>' : '',
+        p.stok === 0 && !p.preOrder ? '<span class="lencana lencana-habis">Habis</span>' : '',
+        p.kondisi === 'bekas' ? '<span class="lencana lencana-bekas">Bekas</span>' : '<span class="lencana lencana-baru">Baru</span>',
+      ].join(' ');
+      const gambar = (p.gambar && p.gambar[0]) || '/img/placeholder-photocard.svg';
+      return `<article class="kartu">
+        <a href="/produk?id=${encodeURIComponent(p.id)}" class="${zoom}"><img src="${Clora.esc(gambar)}" alt="${Clora.esc(p.nama)}" loading="lazy" width="400" height="400"></a>
+        <div class="kartu-isi">
+          <a class="kartu-judul" href="/produk?id=${encodeURIComponent(p.id)}">${Clora.esc(p.nama)}</a>
+          <div>${lencana}</div>
+          <div class="harga">${Clora.rupiah(p.harga)}</div>
+          <div class="serat">${Clora.esc(p.grup)}${p.keHalamanCustom ? ' · Pesan via halaman Custom' : ' · Stok ' + p.stok}</div>
+        </div>
+      </article>`;
+    }
+
+    let jeda;
+    ['q', 'hargaMin', 'hargaMaks'].forEach((id) =>
+      el(id).addEventListener('input', () => { clearTimeout(jeda); jeda = setTimeout(muat, 350); })
+    );
+    ['kategori', 'grup', 'member', 'stok', 'urut', 'preOrder', 'unggulan'].forEach((id) =>
+      el(id).addEventListener('change', muat)
+    );
+    el('btnReset').addEventListener('click', () => {
+      ['q', 'hargaMin', 'hargaMaks'].forEach((id) => (el(id).value = ''));
+      ['kategori', 'grup', 'member', 'stok'].forEach((id) => (el(id).value = ''));
+      el('urut').value = 'urut';
+      el('preOrder').checked = false;
+      el('unggulan').checked = false;
+      muat();
+    });
+
+    (async () => {
+      const params = new URLSearchParams(location.search);
+      if (params.get('kategori')) el('kategori').value = params.get('kategori');
+      if (params.get('unggulan') === '1') el('unggulan').checked = true;
+      if (params.get('preOrder') === '1') el('preOrder').checked = true;
+      if (params.get('q')) el('q').value = params.get('q');
+      await muatOpsi();
+      if (params.get('kategori')) el('kategori').value = params.get('kategori');
+      await muat();
+    })();
+  </script>
+</body>
+</html>

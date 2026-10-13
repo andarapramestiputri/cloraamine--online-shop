@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Ulasan — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/ulasan" class="aktif">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <h1>Ulasan Pembeli</h1>
+
+    <form class="panel form" id="form-ulasan">
+      <h2>Beri Ulasan</h2>
+      <div class="baris">
+        <label for="produk">Produk (opsional)</label>
+        <select id="produk"><option value="">Pilih produk…</option></select>
+      </div>
+      <div class="baris">
+        <label for="nama">Nama</label>
+        <input type="text" id="nama" required minlength="3" maxlength="60" />
+      </div>
+      <div class="baris">
+        <label for="rating">Rating</label>
+        <select id="rating" required>
+          <option value="5">★★★★★ (5 — Sangat puas)</option>
+          <option value="4">★★★★☆ (4 — Puas)</option>
+          <option value="3">★★★☆☆ (3 — Cukup)</option>
+          <option value="2">★★☆☆☆ (2 — Kurang)</option>
+          <option value="1">★☆☆☆☆ (1 — Sangat kurang)</option>
+        </select>
+      </div>
+      <div class="baris">
+        <label for="komentar">Komentar</label>
+        <textarea id="komentar" rows="3" required minlength="5" maxlength="500"></textarea>
+      </div>
+      <div id="pesan" class="pesan pesan-tersembunyi"></div>
+      <button class="tombol tombol-lebar" type="submit">Kirim Ulasan</button>
+    </form>
+
+    <section class="panel">
+      <h2>Ulasan Terbaru</h2>
+      <div id="daftar">Memuat…</div>
+    </section>
+
+    <section class="panel">
+      <h2>Hubungi Kami</h2>
+      <p class="kecil">Ikuti dan hubungi toko melalui media sosial berikut:</p>
+      <ul class="media-sosial" id="media-sosial"></ul>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine. </p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    const el = (id) => document.getElementById(id);
+
+    async function muatUlasan() {
+      try {
+        const daftar = await Clora.api('/ulasan');
+        el('daftar').innerHTML = daftar.length
+          ? daftar.map((u) => `
+              <div class="panel" style="margin:8px 0">
+                <div class="row row-antara">
+                  <strong>${Clora.esc(u.nama)}</strong>
+                  <span class="lencana">${'★'.repeat(u.rating)}${'☆'.repeat(5 - u.rating)}</span>
+                </div>
+                ${u.produk_id ? `<p class="kecil abu util-mb-0">Produk: ${Clora.esc(u.produk_id)}</p>` : ''}
+                <p class="kecil util-mb-0">${Clora.esc(u.komentar)}</p>
+                <p class="kecil abu util-mb-0">${Clora.esc(u.created_at)}</p>
+              </div>`).join('')
+          : '<p class="abu">Belum ada ulasan.</p>';
+      } catch (e) {
+        el('daftar').textContent = 'Gagal memuat ulasan: ' + e.message;
+      }
+    }
+
+    (async () => {
+      try {
+        const produk = await Clora.api('/produk');
+        produk.filter((p) => !p.keHalamanCustom).forEach((p) =>
+          el('produk').add(new Option(p.nama, p.id))
+        );
+      } catch (e) { /* abaikan */ }
+      try {
+        const p = await Clora.api('/pengaturan');
+        el('media-sosial').innerHTML = p.mediaSosial.map((m) =>
+          `<li><a href="${Clora.esc(m.url)}" target="_blank" rel="noopener" title="${Clora.esc(m.platform)}">${Clora.esc(m.label)}</a></li>`
+        ).join('');
+      } catch (e) { /* abaikan */ }
+      muatUlasan();
+    })();
+
+    el('form-ulasan').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const pesan = el('pesan');
+      try {
+        const d = await Clora.api('/ulasan', {
+          method: 'POST',
+          data: {
+            produkId: el('produk').value || null,
+            nama: el('nama').value,
+            rating: Number(el('rating').value),
+            komentar: el('komentar').value,
+          },
+        });
+        pesan.className = 'pesan pesan-sukses';
+        pesan.textContent = d.pesan;
+        el('komentar').value = '';
+        muatUlasan();
+      } catch (e) {
+        pesan.className = 'pesan pesan-galat';
+        pesan.textContent = e.message;
+      }
+    });
+  </script>
+</body>
+</html>

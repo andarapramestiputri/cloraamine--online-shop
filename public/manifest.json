@@ -1,0 +1,17 @@
+{
+  "name": "Cloraamine — Toko Photocard & Merchandise K-pop",
+  "short_name": "Cloraamine",
+  "description": "Photocard, album K-pop, merchandise, stiker custom, dan pin button custom.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#fdf6ee",
+  "theme_color": "#d94f8a",
+  "lang": "id",
+  "icons": [
+    { "src": "/img/ikon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/img/ikon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/img/ikon-masking.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

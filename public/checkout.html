@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Checkout — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <h1>Checkout</h1>
+
+    <div id="ringkasan-belanja" class="panel"></div>
+
+    <div id="pesan" class="pesan pesan-tersembunyi"></div>
+
+    <form class="panel form" id="form-checkout">
+      <h2>Data Pengiriman</h2>
+      <div class="baris">
+        <label for="nama">Nama lengkap</label>
+        <input type="text" id="nama" required minlength="3" maxlength="80" autocomplete="name" />
+      </div>
+      <div class="baris">
+        <label for="wa">Nomor WhatsApp</label>
+        <input type="tel" id="wa" required placeholder="081234567890" autocomplete="tel" />
+        <span class="bantuan">Digunakan untuk pelacakan pesanan dan konfirmasi.</span>
+      </div>
+      <div class="baris">
+        <label for="alamat">Alamat pengiriman</label>
+        <textarea id="alamat" required minlength="10" maxlength="300" rows="3"></textarea>
+      </div>
+      <div class="baris">
+        <label for="ekspedisi">Ekspedisi</label>
+        <select id="ekspedisi" required></select>
+      </div>
+
+      <h2>Pembayaran</h2>
+      <div class="baris">
+        <label for="metode">Metode pembayaran</label>
+        <select id="metode" required>
+          <option value="transfer">Transfer manual (unggah bukti bayar)</option>
+          <option value="qris">QRIS statis (unggah bukti bayar)</option>
+        </select>
+      </div>
+
+      <div id="info-bayar" class="pesan pesan-info">
+        <div id="info-transfer"></div>
+        <div id="info-qris" style="display:none">
+          <p class="util-mb-0">Pindai kode QR berikut dengan aplikasi pembayaran Anda:</p>
+          <img src="/img/qris-contoh.png" alt="Kode QRIS contoh" width="180" height="180" style="margin:8px 0" />
+        </div>
+        <p class="kecil util-mb-0">Setelah mentransfer, unggah bukti pembayaran pada langkah berikutnya.</p>
+      </div>
+
+      <div class="baris">
+        <label for="catatan">Catatan (opsional)</label>
+        <textarea id="catatan" maxlength="300" rows="2" placeholder="Contoh: kemasan dikemas aman"></textarea>
+      </div>
+
+      <label class="kotak-persetujuan">
+        <input type="checkbox" id="persetujuan" required />
+        <span>Saya setuju data yang saya isi digunakan oleh Cloraamine semata-mata untuk memproses pesanan ini.</span>
+      </label>
+
+      <button class="tombol tombol-lebar" type="submit" id="btnPesan">Buat Pesanan</button>
+    </form>
+
+    <div id="hasil-pesanan" class="panel" style="display:none">
+      <h2>Pesanan Berhasil Dibuat</h2>
+      <p>Kode pesanan Anda: <strong id="kode-pesanan"></strong></p>
+      <p class="kecil abu">Simpan kode ini bersama nomor WhatsApp Anda untuk melacak pesanan di halaman <a href="/lacak">Lacak</a>.</p>
+
+      <h3>Unggah Bukti Pembayaran</h3>
+      <div class="form">
+        <div class="baris">
+          <label for="bukti">Berkas bukti bayar (JPG/PNG/WEBP, maksimal 5 MB)</label>
+          <input type="file" id="bukti" accept="image/jpeg,image/png,image/webp" />
+        </div>
+        <button class="tombol" id="btnBukti">Unggah Bukti Bayar</button>
+      </div>
+      <div id="pesan-bukti" class="pesan pesan-tersembunyi"></div>
+
+      <h3>Langkah Selanjutnya</h3>
+      <p class="kecil">Konfirmasikan pesanan kepada penjual melalui WhatsApp setelah bukti pembayaran terunggah.</p>
+      <a class="tombol tombol-kedua" id="waPenjual" target="_blank" rel="noopener">Hubungi Penjual via WhatsApp</a>
+      <a class="tombol tombol-kedua" href="/lacak">Lacak Pesanan</a>
+      <a class="tombol tombol-kedua" id="bukaAkun" href="/akun">Buka Dashboard Pelanggan</a>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine. </p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    const el = (id) => document.getElementById(id);
+    const pesan = el('pesan');
+    let pengaturan = null;
+    let hasilPesanan = null;
+
+    function tampilkanPesan(teks, jenis, wadah) {
+      const w = wadah || pesan;
+      w.className = 'pesan pesan-' + jenis;
+      w.textContent = teks;
+    }
+
+    function muatRingkasan() {
+      const daftar = Clora.keranjang.ambil();
+      if (!daftar.length) {
+        el('ringkasan-belanja').innerHTML =
+          '<div class="pesan pesan-info">Keranjang kosong. <a href="/katalog">Belanja dulu</a> sebelum checkout.</div>';
+        el('form-checkout').style.display = 'none';
+        return;
+      }
+      const subtotal = daftar.reduce((a, i) => a + i.harga * i.jumlah, 0);
+      el('ringkasan-belanja').innerHTML =
+        '<h2 class="util-mb-0">Ringkasan Belanja</h2>' +
+        '<div class="tabel-bungkus"><table class="tabel"><tbody>' +
+        daftar.map((i) =>
+          `<tr><td>${Clora.esc(i.nama)}${i.varianLabel ? ' <span class="kecil abu">(' + Clora.esc(i.varianLabel) + ')</span>' : ''} × ${i.jumlah}</td>
+           <td class="kanan">${Clora.rupiah(i.harga * i.jumlah)}</td></tr>`
+        ).join('') +
+        `<tr><td><strong>Subtotal</strong></td><td class="kanan"><strong>${Clora.rupiah(subtotal)}</strong></td></tr>` +
+        '</tbody></table></div>';
+    }
+
+    // Isi data pengiriman otomatis bila pelanggan sedang masuk
+    async function isiOtomatisAkun() {
+      if (!Clora.sesi.aktif()) return;
+      try {
+        const s = await Clora.api('/akun/sesi');
+        if (!s.ok || !s.akun) return;
+        if (!el('nama').value) el('nama').value = s.akun.nama || '';
+        if (!el('wa').value && s.akun.wa) el('wa').value = s.akun.wa;
+        const al = await Clora.api('/akun/alamat');
+        const utama = (al.alamat || []).find((a) => a.utama) || (al.alamat || [])[0];
+        if (utama && !el('alamat').value) {
+          el('alamat').value = utama.alamat;
+          tampilkanPesan('Alamat diisi otomatis dari alamat tersimpan Anda. Ubah bila perlu.', 'info');
+        } else if (!el('alamat').value) {
+          tampilkanPesan('Anda masuk sebagai ' + s.akun.nama + '. Pesanan akan terhubung ke akun Anda.', 'info');
+        }
+      } catch { /* abaikan — form tetap bisa diisi manual */ }
+    }
+
+    (async () => {
+      muatRingkasan();
+      isiOtomatisAkun();
+      try {
+        pengaturan = await Clora.api('/pengaturan');
+        el('ekspedisi').innerHTML = pengaturan.ekspedisi.map((e) =>
+          `<option value="${e.id}">${Clora.esc(e.nama)} — ongkir ${Clora.rupiah(e.ongkir)}${e.contoh ? ' (CONTOH)' : ''}</option>`
+        ).join('');
+        el('info-transfer').innerHTML =
+          '<p><strong>Transfer manual </strong></p>' +
+          pengaturan.rekening.map((r) =>
+            `<p class="util-mb-0 kecil">${Clora.esc(r.bank)} — ${Clora.esc(r.nomor)} a.n. ${Clora.esc(r.atasNama)}</p>`
+          ).join('');
+        el('waPenjual').href = 'https://wa.me/' + pengaturan.whatsapp.replace(/\D/g, '');
+      } catch (e) {
+        tampilkanPesan('Gagal memuat pengaturan toko: ' + e.message, 'galat');
+      }
+    })();
+
+    el('metode').addEventListener('change', () => {
+      const qris = el('metode').value === 'qris';
+      el('info-qris').style.display = qris ? '' : 'none';
+      el('info-transfer').style.display = qris ? 'none' : '';
+    });
+
+    el('form-checkout').addEventListener('submit', async (ev) => {
+      ev.preventDefault();
+      const daftar = Clora.keranjang.ambil();
+      if (!daftar.length) return;
+      const btn = el('btnPesan');
+      btn.disabled = true;
+      try {
+        const hasil = await Clora.api('/pesanan', {
+          method: 'POST',
+          data: {
+            nama: el('nama').value,
+            wa: el('wa').value,
+            alamat: el('alamat').value,
+            ekspedisi: el('ekspedisi').value,
+            metodePembayaran: el('metode').value,
+            catatan: el('catatan').value,
+            persetujuanData: el('persetujuan').checked,
+            items: daftar.map((i) => ({ produkId: i.produkId, varianId: i.varianId, jumlah: i.jumlah })),
+          },
+        });
+        hasilPesanan = hasil;
+        Clora.keranjang.kosongkan();
+        el('ringkasan-belanja').style.display = 'none';
+        el('form-checkout').style.display = 'none';
+        pesan.className = 'pesan pesan-tersembunyi';
+        el('kode-pesanan').textContent = hasil.kode;
+        el('bukaAkun').href = '/akun?kode=' + encodeURIComponent(hasil.kode) + '&wa=' + encodeURIComponent(el('wa').value);
+        el('hasil-pesanan').style.display = '';
+        el('hasil-pesanan').scrollIntoView({ behavior: 'smooth' });
+      } catch (e) {
+        tampilkanPesan(e.message, 'galat');
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    el('btnBukti').addEventListener('click', async () => {
+      if (!hasilPesanan) return;
+      const berkas = el('bukti').files[0];
+      const w = el('pesan-bukti');
+      if (!berkas) { tampilkanPesan('Pilih berkas bukti bayar terlebih dahulu.', 'galat', w); return; }
+      const fd = new FormData();
+      fd.append('bukti', berkas);
+      const btn = el('btnBukti');
+      btn.disabled = true;
+      try {
+        const res = await fetch('/api/pesanan/' + encodeURIComponent(hasilPesanan.kode) + '/bukti', {
+          method: 'POST',
+          headers: { 'x-token': hasilPesanan.token },
+          body: fd,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.pesan || 'Unggahan gagal.');
+        tampilkanPesan(data.pesan, 'sukses', w);
+      } catch (e) {
+        tampilkanPesan(e.message, 'galat', w);
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>

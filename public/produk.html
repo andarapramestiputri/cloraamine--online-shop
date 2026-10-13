@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Detail Produk — Cloraamine</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/ulasan">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <p><a href="/katalog" class="kecil">← Kembali ke katalog</a></p>
+    <div id="isi">Memuat…</div>
+    <div id="pesan-aksi" class="pesan pesan-tersembunyi"></div>
+
+    <section class="panel" id="panel-ulasan">
+      <h2>Ulasan Pembeli</h2>
+      <div id="ringkas-rating" class="kecil abu"></div>
+      <div id="daftar-ulasan"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine.</p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    const idProduk = new URLSearchParams(location.search).get('id');
+    const pesanAksi = document.getElementById('pesan-aksi');
+
+    function tampilkanPesan(teks, jenis) {
+      pesanAksi.className = 'pesan pesan-' + jenis;
+      pesanAksi.textContent = teks;
+      pesanAksi.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+
+    (async () => {
+      if (!idProduk) {
+        document.getElementById('isi').innerHTML = '<p class="pesan pesan-galat">ID produk tidak ada.</p>';
+        return;
+      }
+      let p;
+      try {
+        p = await Clora.api('/produk/' + encodeURIComponent(idProduk));
+      } catch (e) {
+        document.getElementById('isi').innerHTML = '<p class="pesan pesan-galat">' + Clora.esc(e.message) + '</p>';
+        return;
+      }
+
+      document.title = p.nama + ' — Cloraamine';
+      const gambar = p.gambar.length ? p.gambar : ['/img/placeholder-photocard.svg'];
+      const zoom = p.kategori === 'photocard' ? ' zoom-sentuh' : '';
+      const lencana = [
+        p.preOrder ? '<span class="lencana lencana-preorder">Pre-Order</span>' : '',
+        p.stok === 0 && !p.preOrder ? '<span class="lencana lencana-habis">Stok habis</span>' : '<span class="lencana lencana-baru">Stok ' + p.stok + '</span>',
+        '<span class="lencana ' + (p.kondisi === 'bekas' ? 'lencana-bekas' : 'lencana-baru') + '">' + (p.kondisi === 'bekas' ? 'Bekas' : 'Baru') + '</span>',
+      ].join(' ');
+
+      const opsiVarian = p.varian.length
+        ? `<div class="baris"><label for="varian">Varian</label>
+             <select id="varian">${p.varian.map(v =>
+               `<option value="${v.id}" data-tambahan="${v.harga_tambahan}">${Clora.esc(v.nama)}: ${Clora.esc(v.nilai)}${v.harga_tambahan ? ' (+' + Clora.rupiah(v.harga_tambahan) + ')' : ''}</option>`
+             ).join('')}</select></div>`
+        : '';
+
+      const preorderInfo = p.preOrder
+        ? `<p class="pesan pesan-info">Produk ini merupakan <strong>pre-order</strong>. Estimasi kedatangan: ${Clora.esc(p.estimasiKedatangan || 'belum ditentukan')}.</p>`
+        : '';
+
+      document.getElementById('isi').innerHTML = `
+        <div class="panel">
+          <div class="row" style="align-items:flex-start">
+            <div style="flex:1;min-width:180px" class="${zoom}">
+              <img src="${Clora.esc(gambar[0])}" alt="${Clora.esc(p.nama)}" id="foto-utama" width="400" height="400">
+            </div>
+            <div style="flex:1.2;min-width:220px">
+              <h1>${Clora.esc(p.nama)}</h1>
+              <p>${lencana}</p>
+              <p class="harga" style="font-size:1.4rem" id="harga-tampil">${Clora.rupiah(p.harga)}</p>
+              <p class="kecil abu">${Clora.esc(p.grup)} · ${Clora.esc(p.member)}${p.rating.jumlah ? ' · ★ ' + p.rating.rata + ' (' + p.rating.jumlah + ' ulasan)' : ''}</p>
+              <p>${Clora.esc(p.deskripsi)}</p>
+              ${preorderInfo}
+              <div class="form">
+                ${opsiVarian}
+                <div class="baris"><label for="jumlah">Jumlah</label>
+                  <input type="number" id="jumlah" value="1" min="1" max="${Math.max(1, p.stok)}" inputmode="numeric">
+                </div>
+                ${p.keHalamanCustom
+                  ? '<p class="pesan pesan-info">Produk ini dipesan melalui halaman <a href="/custom">Pesanan Custom</a>.</p>'
+                  : `<button class="tombol tombol-lebar" id="btnKeranjang" ${p.stok === 0 && !p.preOrder ? 'disabled' : ''}>Tambah ke Keranjang</button>`}
+                <button class="tombol tombol-kedua tombol-lebar" id="btnWishlist">♡ Tambah ke Wishlist</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+
+      const pilihVarian = document.getElementById('varian');
+      if (pilihVarian) {
+        pilihVarian.addEventListener('change', () => {
+          const opsi = pilihVarian.selectedOptions[0];
+          document.getElementById('harga-tampil').textContent = Clora.rupiah(p.harga + Number(opsi.dataset.tambahan || 0));
+        });
+      }
+
+      const btn = document.getElementById('btnKeranjang');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const jumlah = Math.max(1, Number(document.getElementById('jumlah').value) || 1);
+          const varian = document.getElementById('varian');
+          Clora.keranjang.tambah({
+            produkId: p.id,
+            nama: p.nama,
+            gambar: gambar[0],
+            harga: p.harga,
+            jumlah,
+            varianId: varian ? Number(varian.value) : null,
+            varianLabel: varian ? varian.selectedOptions[0].textContent : '',
+          });
+          tampilkanPesan('Produk ditambahkan ke keranjang.', 'sukses');
+        });
+      }
+
+      // --- Wishlist (hanya untuk pelanggan yang masuk) ---
+      const btnWishlist = document.getElementById('btnWishlist');
+      async function perbaruiWishlist() {
+        if (!Clora.sesi.aktif()) {
+          btnWishlist.textContent = '♡ Masuk untuk simpan ke Wishlist';
+          return;
+        }
+        try {
+          const d = await Clora.api('/akun/wishlist');
+          const ada = (d.wishlist || []).some((w) => w.id === p.id);
+          btnWishlist.textContent = ada ? '♥ Hapus dari Wishlist' : '♡ Tambah ke Wishlist';
+          btnWishlist.dataset.ada = ada ? '1' : '0';
+        } catch { /* abaikan */ }
+      }
+      btnWishlist.addEventListener('click', async () => {
+        if (!Clora.sesi.aktif()) {
+          tampilkanPesan('Silakan masuk terlebih dahulu untuk menyimpan wishlist.', 'galat');
+          setTimeout(() => (location.href = '/akun?pilihan=pelanggan'), 900);
+          return;
+        }
+        try {
+          if (btnWishlist.dataset.ada === '1') {
+            await Clora.api('/akun/wishlist/' + encodeURIComponent(p.id), { method: 'DELETE' });
+            tampilkanPesan('Produk dihapus dari wishlist.', 'sukses');
+          } else {
+            await Clora.api('/akun/wishlist', { method: 'POST', data: { produkId: p.id } });
+            tampilkanPesan('Produk ditambahkan ke wishlist.', 'sukses');
+          }
+          perbaruiWishlist();
+        } catch (e) {
+          tampilkanPesan(e.message, 'galat');
+        }
+      });
+      perbaruiWishlist();
+
+      try {
+        const ulasan = await Clora.api('/ulasan?produk=' + encodeURIComponent(p.id));
+        document.getElementById('ringkas-rating').textContent = ulasan.length
+          ? `Rata-rata ${p.rating.rata} dari ${ulasan.length} ulasan.`
+          : 'Belum ada ulasan untuk produk ini.';
+        document.getElementById('daftar-ulasan').innerHTML = ulasan.length
+          ? ulasan.map((u) => `
+              <div class="panel" style="margin:8px 0">
+                <strong>${Clora.esc(u.nama)}</strong>
+                <span class="lencana">${'★'.repeat(u.rating)}${'☆'.repeat(5 - u.rating)}</span>
+                <p class="kecil util-mb-0">${Clora.esc(u.komentar)}</p>
+                <p class="kecil abu util-mb-0">${Clora.esc(u.created_at)}</p>
+              </div>`).join('')
+          : '<p class="abu kecil">Jadilah yang pertama memberi ulasan melalui halaman <a href="/ulasan">Ulasan</a>.</p>';
+      } catch (e) { /* abaikan */ }
+    })();
+  </script>
+</body>
+</html>

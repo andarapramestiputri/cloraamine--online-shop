@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400" viewBox="0 0 400 400" role="img" aria-label="Placeholder stiker custom contoh">
+  <rect width="400" height="400" fill="#f6e9da"/>
+  <path d="M120 100 h160 a30 30 0 0 1 30 30 v110 a30 30 0 0 1 -30 30 h-70 l-50 45 10 -45 h-50 a30 30 0 0 1 -30 -30 v-110 a30 30 0 0 1 30 -30 z"
+        fill="#ffffff" stroke="#d94f8a" stroke-width="5"/>
+  <text x="200" y="215" text-anchor="middle" font-family="system-ui, sans-serif" font-size="26" font-weight="700" fill="#4a2e1e">STIKER</text>
+  <text x="200" y="330" text-anchor="middle" font-family="system-ui, sans-serif" font-size="22" font-weight="700" fill="#b83a70">CUSTOM CONTOH</text>
+</svg>

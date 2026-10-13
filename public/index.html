@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#d94f8a" />
+  <title>Cloraamine — Photocard, Album, dan Merchandise K-pop</title>
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" href="/img/ikon-192.png" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <header class="header">
+    <div class="header-dalam">
+      <a class="logo" href="/">Cloraamine</a>
+      <nav class="navigasi">
+        <a href="/" class="aktif">Beranda</a>
+        <a href="/katalog">Katalog</a>
+        <a href="/custom">Custom</a>
+        <a href="/lacak">Lacak</a>
+        <a href="/ulasan">Ulasan</a>
+        <a href="/akun">Akun</a>
+        <a href="/keranjang" class="keranjang-tautan">Keranjang<span class="jumlah-keranjang">0</span></a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="kontainer">
+    <section class="hero">
+      <h1 id="nama-toko">Cloraamine</h1>
+      <p id="slogan">Memuat…</p>
+      <div class="row">
+        <a class="tombol" href="/katalog">Lihat Katalog</a>
+        <a class="tombol tombol-kedua" href="/custom">Pesan Custom</a>
+      </div>
+    </section>
+
+    <section>
+      <h2>Kategori</h2>
+      <div class="kisi" id="daftar-kategori"></div>
+    </section>
+
+    <section>
+      <div class="row row-antara">
+        <h2 class="util-mb-0">Produk Unggulan</h2>
+        <a href="/katalog?unggulan=1" class="kecil">Lihat semua</a>
+      </div>
+      <div class="kisi" id="produk-unggulan"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Informasi Toko</h2>
+      <p id="deskripsi-toko" class="abu"></p>
+    
+      <div class="row">
+        <a class="tombol tombol-kedua tombol-kecil" href="/lacak">Lacak Pesanan</a>
+        <a class="tombol tombol-kedua tombol-kecil" href="/ulasan">Beri Ulasan</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="kontainer">
+      <h3>Cloraamine</h3>
+      <p id="footer-deskripsi">Photocard, album K-pop, merchandise, stiker custom, dan pin button custom.</p>
+      <h3>Media Sosial</h3>
+      <ul class="media-sosial" id="media-sosial"></ul>
+      <p class="kecil">© <span id="tahun"></span> Cloraamine.</p>
+    </div>
+  </footer>
+
+  <script src="/js/util.js"></script>
+  <script>
+    document.getElementById('tahun').textContent = new Date().getFullYear();
+    (async () => {
+      try {
+        const p = await Clora.api('/pengaturan');
+        document.title = p.namaToko + ' — ' + p.slogan;
+        document.getElementById('nama-toko').textContent = p.namaToko;
+        document.getElementById('slogan').textContent = p.slogan;
+        document.getElementById('deskripsi-toko').textContent = p.deskripsiToko;
+        document.getElementById('footer-deskripsi').textContent = p.deskripsiToko;
+        // Semua tautan sosial (TikTok, Instagram, dll.) ditulis @cloraamine di data/pengaturan.js
+        document.getElementById('media-sosial').innerHTML = p.mediaSosial
+          .map((m) => `<li><a href="${Clora.esc(m.url)}" target="_blank" rel="noopener" title="${Clora.esc(m.platform)}">${Clora.esc(m.label)}</a></li>`)
+          .join('');
+      } catch (e) {
+        document.getElementById('slogan').textContent = 'Gagal memuat pengaturan toko.';
+      }
+
+      try {
+        const kategori = await Clora.api('/kategori');
+        document.getElementById('daftar-kategori').innerHTML = kategori
+          .map((k) => `<a class="kartu" href="/katalog?kategori=${encodeURIComponent(k.id)}" style="text-decoration:none">
+              <div class="kartu-isi tengah"><strong>${Clora.esc(k.nama)}</strong>
+              <span class="serat">Lihat produk</span></div></a>`)
+          .join('');
+      } catch (e) { /* abaikan */ }
+
+      try {
+        const unggulan = await Clora.api('/produk?unggulan=1');
+        document.getElementById('produk-unggulan').innerHTML = unggulan.length
+          ? unggulan.map(kartuProduk).join('')
+          : '<p class="abu">Belum ada produk unggulan.</p>';
+      } catch (e) {
+        document.getElementById('produk-unggulan').innerHTML = '<p class="abu">Gagal memuat produk.</p>';
+      }
+    })();
+
+    function kartuProduk(p) {
+      const zoom = p.kategori === 'photocard' ? ' zoom-sentuh' : '';
+      const lencana = [
+        p.preOrder ? '<span class="lencana lencana-preorder">Pre-Order</span>' : '',
+        p.stok === 0 && !p.preOrder ? '<span class="lencana lencana-habis">Habis</span>' : '',
+        p.kondisi === 'bekas' ? '<span class="lencana lencana-bekas">Bekas</span>' : '<span class="lencana lencana-baru">Baru</span>',
+      ].join(' ');
+      const gambar = (p.gambar && p.gambar[0]) || '/img/placeholder-photocard.svg';
+      return `<article class="kartu">
+        <a href="/produk?id=${encodeURIComponent(p.id)}" class="${zoom}"><img src="${Clora.esc(gambar)}" alt="${Clora.esc(p.nama)}" loading="lazy" width="400" height="400"></a>
+        <div class="kartu-isi">
+          <a class="kartu-judul" href="/produk?id=${encodeURIComponent(p.id)}">${Clora.esc(p.nama)}</a>
+          <div>${lencana}</div>
+          <div class="harga">${Clora.rupiah(p.harga)}</div>
+          <div class="serat">${Clora.esc(p.grup)} · Stok ${p.stok}</div>
+        </div>
+      </article>`;
+    }
+  </script>
+</body>
+</html>
