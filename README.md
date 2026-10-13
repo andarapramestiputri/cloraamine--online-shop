@@ -217,13 +217,21 @@ cloraamine/
 - Percobaan masuk admin dan pelanggan dibatasi (5 kali per 15 menit per IP, ruang terpisah).
   "# cloraamine--online-shop"
 
-"""Tampilan Antarmuka (UI)
+##Tampilan Antarmuka (UI)
 
-![beranda](screenshot/beranda.png)
-![dasboard pelanggan](screenshot/dasboard%20pelanggan.png)
-![dashboard admin](screenshot/dashboard%20admin.png)
-![kataloh](screenshot/katalog.png)
-![keranjang](screenshot/keranjang.png)
-![lacak pesanan](screenshot/lacak%20pesanan.png)
-![ulasan](screenshot/ulasan.png)
-![custom pesanan](screenshot/custom%20pesanan.png)
+- beranda
+  ![beranda](screenshot/beranda.png)
+- dasboard pelanggan
+  ![dasboard pelanggan](screenshot/dasboard%20pelanggan.png)
+- dashboard admin
+  ![dashboard admin](screenshot/dashboard%20admin.png)
+- katalog
+  ![katalog](screenshot/katalog.png)
+- keranjang
+  ![keranjang](screenshot/keranjang.png)
+- lacak pesanan
+  ![lacak pesanan](screenshot/lacak%20pesanan.png)
+- ulasan
+  ![ulasan](screenshot/ulasan.png)
+- custom pesanan
+  ![custom pesanan](screenshot/custom%20pesanan.png)
