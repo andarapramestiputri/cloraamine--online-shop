@@ -217,7 +217,7 @@ cloraamine/
 - Percobaan masuk admin dan pelanggan dibatasi (5 kali per 15 menit per IP, ruang terpisah).
   "# cloraamine--online-shop"
 
-##Tampilan Antarmuka (UI)
+## Tampilan Antarmuka (UI)
 
 - beranda
   ![beranda](screenshot/beranda.png)
